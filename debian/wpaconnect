@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [[ -z $@ || -z $2 || $@ == "-h" || $@ == "--help" ]]; then
+    echo -e "Connect to WPA/WPA2 wireless network.\n  Usage: wpaconnect <interface> <path to wpa_supplicant config>"
+else
+    pkill wpa_supplicant
+    pkill dhclient
+    wpa_supplicant -i $1 -c $2 -D wext -B &> /dev/null
+    dhclient
+    echo "Connected."
+fi
