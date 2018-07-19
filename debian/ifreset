@@ -15,6 +15,5 @@ else
 	ifconfig $@ up
 
 	echo -e "\n$@:"
-	echo "  $(macchanger $@ | grep Permanent)"
-	echo "  $(macchanger $@ | grep Current)"
+	macchanger $@
 fi
