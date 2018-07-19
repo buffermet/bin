@@ -6,7 +6,8 @@ else
 	echo "Resetting & spoofing $@ ..."
 
 	# reset
-	iw dev $@ del
+	iw dev $@ del &> /dev/null
+	iw dev $@mon del &> /dev/null
 	iw phy phy0 interface add $@ type managed
 	rfkill unblock wifi
 
