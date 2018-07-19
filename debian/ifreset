@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [[ -z $@ || $@ == "-h" || $@ == "--help" ]]; then
+	echo -e "Resets and spoofs interface.\n  Usage: ifreset <interface>"
+else
+	echo -e "Resetting & spoofing $@ ..."
+
+	# reset
+	iw dev $@ del
+	iw phy phy0 interface add $@ type managed
+	rfkill unblock wifi
+
+	# spoof
+	macchanger -rb $@ &> /dev/null
+	ifconfig $@ up
+
+	echo -e "\n$@:"
+	echo "  $(macchanger $@ | grep Permanent)"
+	echo "  $(macchanger $@ | grep Current)"
+fi
