@@ -14,6 +14,7 @@ else
 	macchanger -rb $@ &> /dev/null
 	ifconfig $@ up
 
+	# check
 	echo -e "\n$@:"
 	macchanger $@
 fi
