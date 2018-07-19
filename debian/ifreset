@@ -3,7 +3,7 @@
 if [[ -z $@ || $@ == "-h" || $@ == "--help" ]]; then
 	echo -e "Resets and spoofs interface.\n  Usage: ifreset <interface>"
 else
-	echo -e "Resetting & spoofing $@ ..."
+	echo "Resetting & spoofing $@ ..."
 
 	# reset
 	iw dev $@ del
@@ -15,6 +15,5 @@ else
 	ifconfig $@ up
 
 	# check
-	echo -e "\n$@:"
 	macchanger $@
 fi
