@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# this command should not be used on virtual interfaces
+
 if [[ -z $@ || $@ == "-h" || $@ == "--help" ]]; then
-	echo -e "Resets and spoofs interface.\n  Usage: ifreset <interface>"
+	echo -e "Resets and spoofs interface.\nThis command should not be used on virtual interfaces!\n  Usage: ifreset <interface>"
 else
 	phy="phy$(echo $@ | sed -e s/^[a-z]*//)"
 	echo "Resetting & spoofing $@ ..."
