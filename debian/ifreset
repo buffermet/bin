@@ -16,6 +16,7 @@ else
 	rfkill unblock wifi
 
 	# spoof
+	ifconfig $@ down
 	macchanger -rb $@ &> /dev/null
 	ifconfig $@ up
 
