@@ -2,8 +2,19 @@
 
 # this command should not be used on virtual interfaces
 
-if [[ -z $@ || $@ == "-h" || $@ == "--help" ]]; then
+show_help() {
 	echo -e "Resets and spoofs interface.\nThis command should not be used on virtual interfaces!\n  Usage: ifreset <interface>"
+	exit
+}
+
+for cvar in $@; do
+	if [[ $cvar == "-h" || $cvar == "-help" || $cvar == "--help" ]]; then
+		show_help
+	fi
+done
+
+if [[ -z $@ ]]; then
+	show_help
 else
 	echo "Resetting & spoofing $@ ..."
 
