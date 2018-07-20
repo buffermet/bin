@@ -5,8 +5,9 @@
 if [[ -z $@ || $@ == "-h" || $@ == "--help" ]]; then
 	echo -e "Resets and spoofs interface.\nThis command should not be used on virtual interfaces!\n  Usage: ifreset <interface>"
 else
-	phy="phy$(echo $@ | sed -e s/^[a-z]*//)"
 	echo "Resetting & spoofing $@ ..."
+
+	phy="phy$(echo $@ | sed -e s/^[a-z]*//)"
 
 	# reset
 	iw dev $@ del &> /dev/null
