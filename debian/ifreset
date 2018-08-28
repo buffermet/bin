@@ -18,19 +18,21 @@ if [[ -z $@ ]]; then
 else
 	echo "Resetting & spoofing $@ ..."
 
-	phy="phy$(echo $@ | sed -e s/^[a-z]*//)"
+	phy="phy$(echo $1 | sed -e s/^[a-z]*//)"
 
 	# reset
-	iw dev $@ del &> /dev/null
-	iw dev $@mon del &> /dev/null
-	iw phy $phy interface add $@ type managed
-	rfkill unblock wifi
+	iw dev $1 del &> /dev/null
+	iw dev $1mon del &> /dev/null
+	iw phy $phy interface add $1 type managed
 
 	# spoof
-	ifconfig $@ down
-	macchanger -rb $@ &> /dev/null
-	ifconfig $@ up
+	ifconfig $1 down
+	macchanger -rb $1 &> /dev/null
+	ifconfig $1 up
 
 	# check
-	macchanger $@
+	sleep 0.2
+	macchanger $1
 fi
+
+# debug
