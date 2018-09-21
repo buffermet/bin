@@ -1,0 +1,21 @@
+#!/bin/bash
+
+show_help() {
+	echo -e "Connect to WPA/WPA2 wireless network.\n  Usage: wpaconnect <interface> <path to wpa_supplicant config>"
+	exit
+}
+
+for cvar in $@; do
+	if [[ $cvar == "-h" || $cvar == "-help" || $cvar == "--help" ]]; then
+		show_help
+	fi
+done
+
+if [[ -z $2 ]]; then
+	show_help
+else
+	pkill wpa_supplicant
+	pkill dhclient
+	wpa_supplicant -i $1 -c $2 -D wext -B &> /dev/null
+	dhclient && echo "Connected."
+fi

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# usage: online <protocols>
+# example: online wifi bluetooth
+
+CVARS=$@
+for VAR in $CVARS; do
+	if [[ $VAR == "wifi" ]]; then
+		rfkill unblock wifi
+		echo -e "Unblocked WIFI."
+	elif [[ $VAR == "gps" ]]; then
+		rfkill unblock gps
+		echo -e "Unblocked GPS."
+	elif [[ $VAR == "bluetooth" ]]; then
+		rfkill unblock bluetooth
+		echo -e "Unblocked Bluetooth."
+	fi
+done
+
+if [[ -z $1 ]]; then
+	rfkill unblock wifi
+	rfkill unblock gps
+	rfkill unblock bluetooth
+	echo -e "Unblocked WIFI, GPS, Bluetooth."
+fi
