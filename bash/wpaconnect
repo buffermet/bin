@@ -17,5 +17,5 @@ else
 	pkill wpa_supplicant
 	pkill dhclient
 	wpa_supplicant -i $1 -c $2 -D wext -B &> /dev/null
-	dhclient && echo "Connected."
+	sleep 2 && dhclient && echo "Connected."
 fi
