@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [[ -z $2 ]]; then
+	echo -e "Checks whether string contains regexp pattern (returns bool).\n\nUsage: matches <string> <pattern>"
+	exit
+fi
+
+match=$(echo $1 | grep -a $2)
+
+if [[ -z $match ]]; then
+	echo false
+else
+	echo true
+fi
