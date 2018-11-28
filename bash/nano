@@ -1,0 +1,1 @@
+/bin/nano --linenumbers --autoindent --nowrap --afterends --smooth --zap "$@"

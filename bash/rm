@@ -1,0 +1,22 @@
+#!/bin/bash
+
+RECURSE=false
+
+for VAR in $@; do
+	if [[ \
+		! -z $(echo $VAR | grep -a "^-") \
+	&& \
+		! -z $(echo $VAR | grep -ai "r\|recursive") \
+	]]; then
+		read -p "Are you sure you want to rm recursively? y/N " ANSWER
+		if [[ ! -z $(grep -ai "y" <<< $ANSWER) ]]; then
+			RECURSE=true
+		fi
+	fi
+done
+
+if $RECURSE; then
+	/bin/rm "$@"
+else
+	echo "Aborted."
+fi
