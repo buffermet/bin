@@ -1,0 +1,68 @@
+#!/bin/bash
+
+show_help() {
+	echo
+	echo "Temporary email address generator and inbox reader."
+	echo
+	echo "Usage: temp-mail <address> <message>"
+	echo
+	echo "Examples:"
+	echo
+	echo -e "  \033[1mtemp-mail name@random.com\033[0m"
+	echo "    Fetches inbox of name@random.com"
+	echo -e "  \033[1mtemp-mail name@random.com 52bf8120ba8cc244d18472aa92ab5246\033[0m"
+	echo "    Fetches this message of this address."
+	echo
+}
+
+for ARG in $@; do
+	if [[ $ARG == "-h" || $ARG == "--help" ]]; then
+		show_help
+		exit
+	fi
+done
+
+if [[ -z $1 ]]; then
+	curl -s "https://temp-mail.org/" | grep -ai "\"mail opentip\"" | sed "s/.*value=\"//" | sed "s/\".*//"
+	echo
+elif [[ -z $2 ]]; then
+	response=$(curl -s "https://temp-mail.org/" -H "Cookie: mail=${1}")
+	ids_str=$((grep -ai "/en/view/" | grep -ai "text-center" | sed "s/.*\/en\/view\///g" | sed "s/\".*//") <<< "$response")
+	ids=()
+	ids_len=0
+	while read line; do
+		ids+=("$line")
+		if [[ ${#line} -gt $ids_len ]]; then
+			ids_len=${#line}
+		fi
+	done <<< "$ids_str"
+	subjects_str=$((grep -ai "class=\"title-subject\">" | sed "s/<\/td> <td>/\\\\n/" | sed "s/.*class=\"title-subject\">//" | sed "s/<\/a><\/td>$//") <<< "$response")
+	subjects=()
+	subjects_len=0
+	while read line; do
+		subjects+=("$line")
+		if [[ ${#line} -gt $subjects_len ]]; then
+			subjects_len=${#line}
+		fi
+	done <<< "$subjects_str"
+	senders_str=$((grep -ai "/en/view/" | grep -ai "&lt;" | sed "s/.*\">//" | sed "s/<\/.*//" | sed "s/&lt;/</" | sed "s/&gt;/>/g") <<< "$response")
+	senders=()
+	senders_len=0
+	while read line; do
+		senders+=("$line")
+		if [[ ${#line} -gt $senders_len ]]; then
+			senders_len=${#line}
+		fi
+	done <<< "$senders_str"
+	echo -e "\033[0;30;47mID $(if [[ $ids_len -gt 2 ]]; then printf ' %.s' $(eval "echo {1.."$(($ids_len-2))"}"); fi)\033[0m \033[0;30;47mSubject $(if [[ $subjects_len -gt 7 ]]; then  printf ' %.s' $(eval "echo {1.."$(($subjects_len-7))"}"); fi)\033[0m \033[0;30;47mFrom $(if [[ $senders_len -gt 4 ]]; then printf ' %.s' $(eval "echo {1.."$(($senders_len-4))"}"); fi)\033[0m "
+	echo
+	for i in "${!senders[@]}"; do
+		pad_id=$(("${ids_len}-${#ids[$i]}+1"))
+		pad_subject=$(("${subjects_len}-${#subjects[$i]}+1"))
+		echo -e "${ids[$i]} $(if [[ $pad_id -gt 0 ]]; then printf ' %.s' $(eval "echo {1.."$(($pad_id))"}"); fi)\033[1m${subjects[$i]}\033[0m $(if [[ $pad_subject -gt 0 ]]; then printf ' %.s' $(eval "echo {1.."$(($pad_subject))"}"); fi)${senders[$i]}"
+	done
+	echo
+else
+	curl -s "https://temp-mail.org/en/view/${2}/" -H "Cookie: mail=${2}" | grep -ai "<div dir=\"auto\">" | sed "s/.*<div dir=\"auto\">//g" | sed "s/<\/div>$//"
+	echo
+fi
