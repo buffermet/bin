@@ -8,8 +8,10 @@ show_help() {
 	echo
 	echo "Examples:"
 	echo
+	echo -e "  \033[1mtemp-mail\033[0m"
+	echo "    Generates random email address."
 	echo -e "  \033[1mtemp-mail name@random.com\033[0m"
-	echo "    Fetches inbox of name@random.com"
+	echo "    Fetches inbox of name@random.com."
 	echo -e "  \033[1mtemp-mail name@random.com 52bf8120ba8cc244d18472aa92ab5246\033[0m"
 	echo "    Fetches this message of this address."
 	echo
