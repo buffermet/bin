@@ -66,6 +66,6 @@ elif [[ -z $2 ]]; then
 	done
 	echo
 else
-	curl -s "https://temp-mail.org/en/view/${2}/" -H "Cookie: mail=${2}" | grep -ai "<div dir=\"auto\">" | sed "s/.*<div dir=\"auto\">//g" | sed "s/<\/div>$//"
+	curl -s "https://temp-mail.org/en/view/${2}/" -H "Cookie: mail=${2}"
 	echo
 fi
