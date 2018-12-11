@@ -57,6 +57,7 @@ elif [[ -z $2 ]]; then
 	echo -e "\033[0;30;47mID $(if [[ $ids_len -gt 2 ]]; then printf ' %.s' $(eval "echo {1.."$(($ids_len-2))"}"); fi)\033[0m \033[0;30;47mSubject $(if [[ $subjects_len -gt 7 ]]; then  printf ' %.s' $(eval "echo {1.."$(($subjects_len-7))"}"); fi)\033[0m \033[0;30;47mFrom $(if [[ $senders_len -gt 4 ]]; then printf ' %.s' $(eval "echo {1.."$(($senders_len-4))"}"); fi)\033[0m "
 	echo
 	for i in "${!senders[@]}"; do
+		if [[ $subjects_len -lt 7 ]]; then subjects_len=7; fi
 		pad_id=$(("${ids_len}-${#ids[$i]}+1"))
 		pad_subject=$(("${subjects_len}-${#subjects[$i]}+1"))
 		echo -e "${ids[$i]} $(if [[ $pad_id -gt 0 ]]; then printf ' %.s' $(eval "echo {1.."$(($pad_id))"}"); fi)\033[1m${subjects[$i]}\033[0m $(if [[ $pad_subject -gt 0 ]]; then printf ' %.s' $(eval "echo {1.."$(($pad_subject))"}"); fi)${senders[$i]}"
