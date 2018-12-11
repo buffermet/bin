@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RECURSE=false
+PROMPT=false
 
 for VAR in $@; do
 	if [[ \
@@ -8,15 +8,17 @@ for VAR in $@; do
 	&& \
 		! -z $(echo $VAR | grep -ai "r\|recursive") \
 	]]; then
-		read -p "Are you sure you want to rm recursively? y/N " ANSWER
-		if [[ ! -z $(grep -ai "^y\$" <<< $ANSWER) ]]; then
-			RECURSE=true
-		fi
+		PROMPT=true
 	fi
 done
 
-if $RECURSE; then
-	/bin/rm "$@"
+if $PROMPT; then
+	read -p "Are you sure you want to rm recursively? y/N " ANSWER
+	if [[ ! -z $(grep -ai "^y\$" <<< $ANSWER) ]]; then
+		/bin/rm "$@"
+	else
+		echo Aborted.
+	fi
 else
-	echo "Aborted."
+	/bin/rm "$@"
 fi
