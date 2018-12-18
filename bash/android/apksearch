@@ -1,0 +1,1 @@
+pm list package | grep $@
