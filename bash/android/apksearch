@@ -1,1 +1,1 @@
-pm list package | grep $@
+pm list package | grep $@ | sed "s/^package://"
