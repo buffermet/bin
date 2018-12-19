@@ -1,4 +1,4 @@
-PIDS=$(ps aux | grep "$1" | grep -v "grep $1" | awk '{print $2}')
+PIDS=$(ps aux | grep "${1}" | grep -v "grep ${1}" | awk '{print $2}')
 for PID in $PIDS; do
 	echo -e "  Sending SIGTERM to [$PID]"
 	kill -15 $PID
