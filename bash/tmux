@@ -1,0 +1,31 @@
+#!/bin/bash
+
+if [ -z $1 ]; then
+	i=0
+	sessions=$(/usr/bin/tmux list-sessions | sed "s/:.*//")
+	for session in $sessions; do
+		id=$(sed "s/session//" <<< $session)
+		if [[ $i -le $id ]]; then
+			i=$(($id+1))
+		fi
+	done
+
+	/usr/bin/tmux new-session -d -s session$i
+	/usr/bin/tmux send-keys -t session$i " \
+	clear; \
+	echo -e \"\033[32m   _                        \"; \
+	echo \"  | |_ _ __ ___  _   ___  __\"; \
+	echo \"  | __| '_ \\\` _ \| | | \ \/ /\"; \
+	echo \"  | |_| | | | | | |_| |>  < \"; \
+	echo \"   \__|_| |_| |_|\__,_/_/\_\\\\\"; \
+	echo -e \"\033[0m\"; \
+	echo -e \"  \033[1;32;40m SESSION $i \033[0m\"; \
+	echo; \
+	" Enter
+	/usr/bin/tmux selectp -t $i
+	/usr/bin/tmux split-window -v
+	/usr/bin/tmux split-window -h
+	/usr/bin/tmux attach -t session$i
+else
+	/usr/bin/tmux "$@"
+fi
