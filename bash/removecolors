@@ -2,6 +2,8 @@
 
 # Remove terminal colors from file and save a copy
 
+print=false
+
 showHelp() {
 	echo
 	echo "  Usage: removecolors <filepath> <options>"
@@ -13,20 +15,18 @@ showHelp() {
 	exit
 }
 
+for arg in $@; do
+	if [[ ! -z $(grep -ai "^[-]\+h\(elp\|\)\$" <<< $arg) ]]; then
+		showHelp
+	elif [[ ! -z $(grep -ai "^[-]\+p\(rint\|\)\$" <<< $arg) ]]; then
+		print=true
+	fi
+done
+
 if [ -z $1 ]; then
 	showHelp
 else
-	if [[ ! -z $(grep -ai "^[-]\+h\(elp\|\)\$" <<< "$1") ]]; then
-		showHelp
-	elif [ -f "$1" ]; then
-		print=false
-
-		for arg in $@; do
-			if [[ ! -z $(grep -ai "^[-]\+p\(rint\|\)\$" <<< $arg) ]]; then
-				print=true
-			fi
-		done
-
+	if [ -f "$1" ]; then
 		if $print; then
 			sed "s/\x1b\[[0-9]\+\(;[0-9]\+\)*\+m//g" "$1"
 		else
