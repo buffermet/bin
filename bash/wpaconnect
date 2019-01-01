@@ -16,6 +16,6 @@ if [[ -z $2 ]]; then
 else
 	pkill wpa_supplicant
 	pkill dhclient
-	wpa_supplicant -i $1 -c $2 -D wext -B &> /dev/null
+	wpa_supplicant -i $1 -c "$2" -D wext -B &> /dev/null
 	sleep 2 && dhclient && echo "Connected."
 fi
