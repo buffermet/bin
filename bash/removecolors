@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Remove terminal colors from file and save a copy
+
+showHelp() {
+	echo
+	echo "  Usage: removecolors <filepath> <options>"
+	echo
+	echo -e "  \e[1mOptions\e[0m"
+	echo
+	echo "    -p, --print    print to stdout instead of saving to file."
+	echo
+	exit
+}
+
+if [ -z $1 ]; then
+	showHelp
+else
+	if [[ ! -z $(grep -ai "^[-]\+h\(elp\|\)\$" <<< "$1") ]]; then
+		showHelp
+	elif [ -f "$1" ]; then
+		print=false
+
+		for arg in $@; do
+			if [[ ! -z $(grep -ai "^[-]\+p\(rint\|\)\$" <<< $arg) ]]; then
+				print=true
+			fi
+		done
+
+		if print; then
+			sed "s/\x1b\[[0-9]\+\(;[0-9]\+\)*\+m//g" "$1"
+		else
+			echo "Saving output as $1.nocolors ..."
+			sed "s/\x1b\[[0-9]\+\(;[0-9]\+\)*\+m//g" "$1" > "$1.nocolors"
+		fi
+	else
+		echo -e "\e[31mERROR\e[0m file not found: $1"
+	fi
+fi
