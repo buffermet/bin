@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Start adding X to Y until we reached Z
+# Usage: startadding 1 3 5
+
+current=0
+increment=1
+limit=false
+
+if [ ! -z $1 ]; then
+	increment=$1
+fi
+
+if [ ! -z $2 ]; then
+	current=$2
+fi
+
+if [ ! -z $3 ]; then
+	limit=$3
+fi
+
+if [ $increment -gt 0 ]; then
+	while true; do
+		if [ $limit != false ] && [ $current -gt $limit ]; then
+			exit
+		fi
+		echo $current
+		current=$(($current+$increment))
+		sleep 1
+	done
+else
+	echo "error: increment may not be 0"
+fi
