@@ -1,0 +1,5 @@
+if [ ! -z $1 ]; then
+	ls -Ral --color=yes "$@"
+else
+	ls -Ral --color=yes
+fi
