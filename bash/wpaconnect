@@ -14,8 +14,17 @@ done
 if [[ -z $2 ]]; then
 	show_help
 else
-	pkill wpa_supplicant
-	pkill dhclient
-	wpa_supplicant -i $1 -c "$2" -D wext -B &> /dev/null
-	sleep 2 && dhclient && echo "Connected."
+	pids=$(pgrep "wpa_supplicant .*[-]i $1\( .*\|\$\)")
+	for pid in $pids; do
+		kill -9 $pid &> /dev/null
+	done
+	dhclient -r "$1"
+
+	ip link set "$1" down \
+	&& ip link set "$1" up \
+	&& sleep 1 \
+	&& wpa_supplicant -i "$1" -c "$2" -D wext -B &> /dev/null
+
+	sleep 2
+	dhclient && echo "Connected."
 fi
