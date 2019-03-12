@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# pipe nmap scan report into searchsploit
+
+SCANS_DIR="/root/scans"
+
+if [ ! -z $2 ]; then
+	cd /root/scans
+	if [ -f "/root/scans/$2" ]; then
+		read -p "File $2 already exists, overwrite? y/N " ANSWER
+		if [ -z $(grep -ai "^y\$" <<< $ANSWER) ]; then echo Aborted.; exit; fi
+	fi
+	if [ ! -z "$3" ]; then
+		nmap -p 1-65535 -sV -oX "$2" "$1"; searchsploit --nmap "$2"
+	else
+		nmap -p 1-65535 -sV -oX "$2" "$1"; searchsploit --nmap "$2"
+	fi
+else
+	echo -e "usage: vulnscan <host> <scanfile> \e[30m<params>\e[0m"
+fi
