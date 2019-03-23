@@ -14,7 +14,7 @@ done
 if [[ -z $2 ]]; then
 	show_help
 else
-	pids=$(ps aux | grep -a "wpa_supplicant .*[-]i builtin\( .*\|\$\)" | awk "{print \$2}")
+	pids=$(ps aux | grep -a "wpa_supplicant .*[-]i builtin\( .*\|\$\)" | grep -av "grep -a wpa_supplicant" | awk "{print \$2}")
 	for pid in $pids; do
 		kill -9 $pid &> /dev/null
 	done
