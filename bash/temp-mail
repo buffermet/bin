@@ -28,7 +28,7 @@ if [[ -z $1 ]]; then
 	curl -s "https://temp-mail.org/" | grep -ai "\"mail opentip\"" | sed "s/.*value=\"//" | sed "s/\".*//"
 	echo
 elif [[ -z $2 ]]; then
-	response=$(curl -s "https://temp-mail.org/" -H "Cookie: mail=${1}")
+	response=$(curl -s "https://temp-mail.org/en/option/refresh/" -H "Cookie: mail=${1}")
 	ids_str=$((grep -ai "/en/view/" | grep -ai "text-center" | sed "s/.*\/en\/view\///g" | sed "s/\".*//") <<< "$response")
 	ids=()
 	ids_len=0
