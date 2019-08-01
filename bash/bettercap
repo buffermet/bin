@@ -1,0 +1,20 @@
+#!/bin/bash
+
+CONTAINS_EVAL=false
+EVAL_CODE=""
+CVARS=("$@")
+
+for i in ${!CVARS[@]}; do
+	if [[ ! -z `grep -ai "^-eval\$" <<< ${CVARS[$i]}` ]]; then
+		CONTAINS_EVAL=true
+		EVAL_CODE="${CVARS[$i+1]}"
+		CVARS[$i]=""
+		CVARS[$i+1]=""
+	fi
+done
+
+if $CONTAINS_EVAL; then
+	/root/go/bin/bettercap -eval "set $ ''; $EVAL_CODE" $CVARS
+else
+	/root/go/bin/bettercap -eval "set $ ''" "$@"
+fi

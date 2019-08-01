@@ -1,1 +1,8 @@
-/bin/nano --linenumbers --autoindent --nowrap --afterends --smooth --zap "$@"
+/bin/nano \
+	--linenumbers \
+	--autoindent \
+	--tabsize=4 \
+	--nowrap \
+	--afterends \
+	--zap \
+    "$@"
