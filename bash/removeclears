@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Remove terminal clear characters from file and save a copy
+
+print=false
+
+showHelp() {
+	echo
+	echo "  Usage: removeclears <filepath> <options>"
+	echo
+	echo -e "  \e[1mOptions\e[0m"
+	echo
+	echo "    -p, --print    print to stdout instead of saving to file."
+	echo
+	exit
+}
+
+for arg in $@; do
+	if [[ ! -z $(grep -ai "^[-]\+h\(elp\|\)\$" <<< $arg) ]]; then
+		showHelp
+	elif [[ ! -z $(grep -ai "^[-]\+p\(rint\|\)\$" <<< $arg) ]]; then
+		print=true
+	fi
+done
+
+if [ -z $1 ]; then
+	showHelp
+else
+	if [ -f "$1" ]; then
+		if $print; then
+			sed "s/\x1b\[H\|\x1b\[2J//g" "$1"
+		else
+			echo "Saving output as $1.noclears ..."
+			sed "s/\x1b\[H\|\x1b\[2J//g" "$1" > "$1.noclears"
+		fi
+	else
+		echo -e "\e[31mERROR\e[0m file not found: $1"
+	fi
+fi

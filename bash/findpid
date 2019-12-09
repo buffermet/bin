@@ -1,0 +1,14 @@
+#!/bin/bash
+
+for ARG in $@; do
+	if [[ ! -z $(grep -ai "^[-]\+h" <<< $ARG) ]]; then
+		echo "Find processes with regular expression."
+		echo
+		echo "Usage: findpid <regexp>"
+		echo
+		echo "Example: findpid syndaemon"
+		exit
+	fi
+done
+
+ps aux | grep "$@" | grep -v "$0 $1" | grep -v "grep"

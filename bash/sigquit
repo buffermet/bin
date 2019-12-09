@@ -3,8 +3,8 @@
 if [[ ! -z "$1" ]]; then
 	PIDS=(`ps aux | grep "$1" | grep -v "$0 $1" | grep -v "grep" | awk '{print $2}'`)
 	for PID in $PIDS; do
-		echo "  Sending SIGTERM to [$PID]"
-		kill -15 $PID
+		echo "  Sending SIGQUIT to [$PID]"
+		kill -3 "$PID"
 	done
 else
 	echo "error: no regexp search specified"

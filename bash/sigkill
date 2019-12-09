@@ -1,6 +1,15 @@
-PIDS=$(ps aux | grep "${1}" | grep -v "grep ${1}" | awk '{print $2}')
-for PID in $PIDS
-do
-	echo -e "  Sending SIGKILL to [$PID]"
+#!/bin/bash
+
+PROCS=`ps aux | grep "$@" | grep -v "$0 $1" | grep -v "grep"`
+PIDS=(`awk '{print $2}' <<< "$PROCS"`)
+
+for i in ${!PIDS[@]}; do
+#	BINS=("`echo -n \"$PROCS\" | sed \"s/.*[0-9]\\+:[0-9]\\+\\\\s\\+[0-9]\\+:[0-9]\\+\\\\s\\+//g\"`")
+#	BIN=${BINS[$i]}
+	PID=${PIDS[$i]}
+
+#	echo -e "  Sending SIGKILL to [$PID] \033[31m$BIN\033[0m"
+	echo "  Sending SIGKILL to [$PID]"
 	kill -9 $PID
+	let i++
 done

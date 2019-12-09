@@ -2,29 +2,41 @@
 
 show_help() {
 	echo -e "Connect to WPA/WPA2 wireless network.\n  Usage: wpaconnect <interface> <path to wpa_supplicant config>"
-	exit
 }
 
 for cvar in $@; do
 	if [[ $cvar == "-h" || $cvar == "-help" || $cvar == "--help" ]]; then
 		show_help
+		exit 0
 	fi
 done
 
 if [[ -z $2 ]]; then
 	show_help
-else
-	pids=$(ps aux | grep -a "wpa_supplicant .*[-]i builtin\( .*\|\$\)" | grep -av "grep -a wpa_supplicant" | awk "{print \$2}")
-	for pid in $pids; do
-		kill -9 $pid &> /dev/null
-	done
-	dhclient -r "$1"
+	exit 1
+fi
 
-	ip link set "$1" down \
+if [[ -z `iw dev | grep -a "Interface $1\$"` ]]; then
+	echo "error: cannot find interface \"$1\"."
+	exit 1
+fi
+
+if [[ ! -f "$2" ]]; then
+	echo "error: cannot find networkblock \"$2\"."
+	exit 1
+fi
+
+pids=$(ps aux | grep -a "wpa_supplicant .*[-]i builtin\( .*\|\$\)" | grep -av "grep -a wpa_supplicant" | awk "{print \$2}")
+for pid in $pids; do
+	kill -9 $pid &> /dev/null
+done
+dhclient -r "$1"
+
+ip link set "$1" down \
+	&& iw "$1" set type managed \
 	&& ip link set "$1" up \
-	&& sleep 1 \
+	&& sleep 0.5 \
 	&& wpa_supplicant -i "$1" -c "$2" -D wext -B &> /dev/null
 
-	sleep 2
-	dhclient && echo "Connected."
-fi
+sleep 2
+dhclient "$1" && echo "Connected."
