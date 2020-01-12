@@ -8,13 +8,13 @@ synclient MaxSpeed=16
 synclient AccelFactor=0.06
 #synclient AccelFactor=0.05
 # 20
-#synclient CoastingSpeed=0
-synclient CoastingSpeed=0.01
-synclient CoastingFriction=20
+synclient CoastingSpeed=0
+#synclient CoastingSpeed=0.01
+#synclient CoastingFriction=20
 
 # remove annoyances
-#synclient HorizHysteresis=0
-#synclient VertHysteresis=0
+synclient HorizHysteresis=0
+synclient VertHysteresis=0
 
 # disable tap while typing
-#syndaemon -d -t -i 0.5
+syndaemon -d -t -i 0.5
