@@ -1,16 +1,17 @@
 #!/bin/bash
 
-if [ -z $1 ]; then
-	sigterm "wpa_supplicant" &>/dev/null
-	dhclient -r &>/dev/null
-	sigterm dhclient &>/dev/null
-	echo "All interfaces disconnected."
+if [ -z "$1" ]; then
+	dhclient -r &>/dev/null;
+	sigterm "wpa_supplicant" &>/dev/null;
+	sigterm "wpa_supplicant" &>/dev/null;
+	sigkill dhclient &>/dev/null;
+	echo "All interfaces disconnected.";
 else
-	sigterm "wpa_supplicant\\s\+\-i\\s\+$1" &>/dev/null
-	dhclient -r "$1" &>/dev/null
-	sigterm "dhclient\\s\+\-v\\s\+$1" &>/dev/null
-	sigterm "dhclient $1" &>/dev/null
-	down "$1" &>/dev/null
-	echo "$1 disconnected."
-fi
-
+	dhclient -r "$1" &>/dev/null;
+	sigterm "wpa_supplicant\\s\+\-i\\s\+$1" &>/dev/null;
+	sigterm "wpa_supplicant\\s\+\-i\\s\+$1" &>/dev/null;
+	sigkill "dhclient\\s\+\-v\\s\+$1" &>/dev/null;
+	sigkill "dhclient\\s\+$1" &>/dev/null;
+	down "$1" &>/dev/null;
+	echo "$1 disconnected.";
+fi;

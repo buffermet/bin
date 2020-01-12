@@ -1,42 +1,49 @@
 #!/bin/bash
 
 show_help() {
-	echo -e "Connect to WPA/WPA2 wireless network.\n  Usage: wpaconnect <interface> <path to wpa_supplicant config>"
+	echo -e "Connect to WPA/WPA2 wireless network.\n  Usage: wpaconnect <interface> <path to wpa_supplicant config>";
 }
 
 for cvar in $@; do
 	if [[ $cvar == "-h" || $cvar == "-help" || $cvar == "--help" ]]; then
-		show_help
-		exit 0
-	fi
-done
+		show_help;
+		exit 0;
+	fi;
+done;
 
 if [[ -z $2 ]]; then
-	show_help
-	exit 1
-fi
+	show_help;
+	exit 1;
+fi;
 
 if [[ -z `iw dev | grep -a "Interface $1\$"` ]]; then
-	echo "error: cannot find interface \"$1\"."
-	exit 1
-fi
+	echo "error: cannot find interface \"$1\".";
+	exit 1;
+fi;
 
 if [[ ! -f "$2" ]]; then
-	echo "error: cannot find networkblock \"$2\"."
-	exit 1
-fi
+	echo "error: cannot find networkblock \"$2\".";
+	exit 1;
+fi;
 
-pids=$(ps aux | grep -a "wpa_supplicant .*[-]i builtin\( .*\|\$\)" | grep -av "grep -a wpa_supplicant" | awk "{print \$2}")
-for pid in $pids; do
-	kill -9 $pid &> /dev/null
-done
-dhclient -r "$1"
+service network-manager stop;
+
+PIDS=`ps aux | grep -a "wpa_supplicant .*[-]i builtin\( .*\|\$\)" | grep -av "grep -a wpa_supplicant" | awk "{print \$2}"`;
+for PID in $PIDS; do
+	kill -9 "$PID" &> /dev/null;
+done;
+dhclient -r "$1";
 
 ip link set "$1" down \
 	&& iw "$1" set type managed \
 	&& ip link set "$1" up \
-	&& sleep 0.5 \
-	&& wpa_supplicant -i "$1" -c "$2" -D wext -B &> /dev/null
+	&& wpa_supplicant -i "$1" -c "$2" -D nl80211 | while IFS= read -r line; do
+		if [[ ! -z `grep -a "CTRL-EVENT-CONNECTED - Connection to .* completed" <<< "$line"` ]]; then
+			# successfully connected
+			dhclient -v -4 "$1" && echo "Connected.";
+			sigkill "wpaconnect $1 $2" &>/dev/null;
+		fi;
+	done;
 
-sleep 2
-dhclient "$1" && echo "Connected."
+# failed to connect
+exit 1;

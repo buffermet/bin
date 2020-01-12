@@ -1,0 +1,20 @@
+# invert horizontal scrolling
+synclient HorizScrollDelta=-79
+synclient VertScrollDelta=-79
+
+# set sensitivity
+synclient MinSpeed=1.5
+synclient MaxSpeed=16
+synclient AccelFactor=0.06
+#synclient AccelFactor=0.05
+# 20
+#synclient CoastingSpeed=0
+synclient CoastingSpeed=0.01
+synclient CoastingFriction=20
+
+# remove annoyances
+#synclient HorizHysteresis=0
+#synclient VertHysteresis=0
+
+# disable tap while typing
+#syndaemon -d -t -i 0.5
