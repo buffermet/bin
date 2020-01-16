@@ -5,13 +5,13 @@
 
 CVARS=$@
 for VAR in $CVARS; do
-	if [[ $VAR == "wifi" ]]; then
+	if [[ ! -z `grep -ai "^wifi\$" <<< "$VAR"` ]]; then
 		rfkill unblock wifi
-		echo -e "Unblocked WIFI."
-	elif [[ $VAR == "gps" ]]; then
+		echo -e "Unblocked WiFi."
+	elif [[ ! -z `grep -ai "^gps\$" <<< "$VAR"` ]]; then
 		rfkill unblock gps
 		echo -e "Unblocked GPS."
-	elif [[ $VAR == "bluetooth" ]]; then
+	elif [[ ! -z `grep -ai "^bluetooth\$" <<< "$VAR"` ]]; then
 		rfkill unblock bluetooth
 		echo -e "Unblocked Bluetooth."
 	fi
@@ -21,5 +21,5 @@ if [[ -z $1 ]]; then
 	rfkill unblock wifi
 	rfkill unblock gps
 	rfkill unblock bluetooth
-	echo -e "Unblocked WIFI, GPS, Bluetooth."
+	echo -e "Unblocked WiFi, GPS, Bluetooth."
 fi
