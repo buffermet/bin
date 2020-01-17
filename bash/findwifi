@@ -29,6 +29,6 @@ else
 	for ESC_AP in $ESC_APS; do
 		ESC_AP=`sed "s/$EOL/,/g" <<< $ESC_AP`;
 		AP=`sed "s/$SPACE/ /g" <<< $ESC_AP`;
-		echo "$AP";
+		echo "$AP" | sed "s/^ //g" | sed "s/,\\s*\$//g";
 	done;
 fi;
