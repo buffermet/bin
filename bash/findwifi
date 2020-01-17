@@ -1,0 +1,39 @@
+#!/bin/bash
+
+if [[ -z "$1" ]]; then
+	echo "usage: findwifi <INTERFACE> <PATTERN>";
+	exit 1;
+fi;
+
+ip link set "$1" up;
+
+if [[ -z "$2" ]]; then
+	APS_STR=`iw builtin scan | grep -ao "SSID:.*\$\|signal:.*\$\|freq:.*\$\|cipher.*\$\|suites:.*\$\|Capabilities:.*\$\|^BSS.*\$" | sed "s/[(]on \\w\+[)]//g" | sed "s/^BSS/\\nBSSID:/g" | sed "s/^SSID:.\(.*\)\$/SSID: \x1b[33m\1\x1b[0m/g"`;
+else
+	APS_STR=`iw builtin scan | grep -ao "SSID:.*\$\|signal:.*\$\|freq:.*\$\|cipher.*\$\|suites:.*\$\|Capabilities:.*\$\|^BSS.*\$" | sed "s/[(]on \\w\+[)]//g" | sed "s/^BSS/\\nBSS/g" | sed "s/^SSID:.\(.*\)\$/SSID: \x1b[33m\1\x1b[0m/g" | sed "s/^BSS /BSSID: /g" | grep -ai "$2" -A10 -B10`;
+fi;
+
+if [[ -z "$APS_STR" ]]; then
+	sleep 1;
+	echo "$(findwifi $@)";
+else
+	EOL=`pwgen -s 32 1`;
+	SPACE=`pwgen -s 32 1`;
+
+	ESC_APS_STR=`sed "s/^\$/$EOL/g" <<< "$APS_STR"`;
+	ESC_APS_STR=`sed "s/\$/$EOL/g" <<< "$ESC_APS_STR"`;
+	ESC_APS_STR=`sed "s/\\s/$SPACE/g" <<< $ESC_APS_STR`;
+	ESC_APS_STR=`echo $ESC_APS_STR | sed "s/\\s/$SPACE/g"`;
+
+	ESC_APS="${ESC_APS_STR//${EOL}${EOL}/ }";
+	for ESC_AP in $ESC_APS; do
+		ESC_AP=`sed "s/$EOL/, /g" <<< $ESC_AP`;
+		AP=`sed "s/$SPACE/ /g" <<< $ESC_AP`;
+		echo "$AP";
+	done;
+
+echo
+echo "space : $SPACE"
+echo "eol   : $EOL"
+echo "count : ${ESP_APS[@]}"
+fi;

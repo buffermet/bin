@@ -1,9 +1,10 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
+	sigkill wpaconnect;
 	dhclient -r &>/dev/null;
-	sigterm "wpa_supplicant" &>/dev/null;
-	sigterm "wpa_supplicant" &>/dev/null;
+	sigterm wpa_supplicant &>/dev/null;
+	sigterm wpa_supplicant &>/dev/null;
 	sigkill dhclient &>/dev/null;
 	echo "All interfaces disconnected.";
 else
