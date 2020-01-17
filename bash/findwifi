@@ -31,9 +31,4 @@ else
 		AP=`sed "s/$SPACE/ /g" <<< $ESC_AP`;
 		echo "$AP";
 	done;
-
-echo
-echo "space : $SPACE"
-echo "eol   : $EOL"
-echo "count : ${ESP_APS[@]}"
 fi;
