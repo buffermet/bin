@@ -65,18 +65,18 @@ else
 				   ! -z `grep -a "freq: 2[0-9]\{3\}" <<< $AP` \
 				&& ! -z `grep -a "$PATTERN"           <<< $AP` \
 			]]; then
-				echo "$AP" | sed "s/^ //g" | sed "s/,\\s*\$//g";
+				echo "$AP" | sed "s/^ //g" | sed "s/\\s*\$//g";
 			fi;
 		elif [[ $GHZ24 -eq 1 ]]; then
-		   if [[ ! -z `grep -a "freq: 2[0-9]\{3\}," <<< $AP` ]]; then
-				echo "$AP" | sed "s/^ //g" | sed "s/,\\s*\$//g";
+		   if [[ ! -z `grep -a "freq: 2[0-9]\{3\}" <<< $AP` ]]; then
+				echo "$AP" | sed "s/^ //g" | sed "s/\\s*\$//g";
 		   fi;
 		elif [[ ! -z "$PATTERN" ]]; then
 			if [[ ! -z `grep -a "$PATTERN" <<< $AP` ]]; then
-				echo "$AP" | sed "s/^ //g" | sed "s/,\\s*\$//g";
+				echo "$AP" | sed "s/^ //g" | sed "s/\\s*\$//g";
 			fi;
 		else
-			echo "$AP" | sed "s/^ //g" | sed "s/,\\s*\$//g";
+			echo "$AP" | sed "s/^ //g" | sed "s/\\s*\$//g";
 		fi;
 	done;
 fi;
