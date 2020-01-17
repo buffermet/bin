@@ -22,7 +22,7 @@ else
 
 	ESC_APS_STR=`sed "s/^\$/$EOL/g" <<< "$APS_STR"`;
 	ESC_APS_STR=`sed "s/\$/$EOL/g" <<< "$ESC_APS_STR"`;
-	ESC_APS_STR=`sed "s/\\s/$SPACE/g" <<< $ESC_APS_STR`;
+	ESC_APS_STR=`sed "s/\\s/$SPACE/g" <<< "$ESC_APS_STR"`;
 	ESC_APS_STR=`echo $ESC_APS_STR | sed "s/\\s/$SPACE/g"`;
 
 	ESC_APS="${ESC_APS_STR//${EOL}${EOL}/ }";
