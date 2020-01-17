@@ -27,7 +27,7 @@ else
 
 	ESC_APS="${ESC_APS_STR//${EOL}${EOL}/ }";
 	for ESC_AP in $ESC_APS; do
-		ESC_AP=`sed "s/$EOL/, /g" <<< $ESC_AP`;
+		ESC_AP=`sed "s/$EOL/,/g" <<< $ESC_AP`;
 		AP=`sed "s/$SPACE/ /g" <<< $ESC_AP`;
 		echo "$AP";
 	done;
