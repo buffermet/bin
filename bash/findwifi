@@ -1,7 +1,6 @@
 #!/bin/bash
 
 GHZ24=0;
-PATTERN="";
 
 function showOptions() {
 	echo;
@@ -10,7 +9,6 @@ function showOptions() {
 	echo "Options";
 	echo;
 	echo "  -2                Only show 2.4GHz networks.";
-	echo "  -filter <REGEXP>  Filter by regexp string.";
 	echo;
 }
 
@@ -60,21 +58,14 @@ else
 		ESC_AP=`sed "s/$EOL/ /g" <<< $ESC_AP`;
 		AP=`sed "s/$SPACE/ /g" <<< $ESC_AP`;
 
-		if [[ $GHZ24 -eq 1 && ! -z "$PATTERN" ]]; then
-			if [[ \
-				   ! -z `grep -a "freq: 2[0-9]\{3\}" <<< $AP` \
-				&& ! -z `grep -a "$PATTERN"           <<< $AP` \
-			]]; then
-				echo "$AP" | sed "s/^ //g" | sed "s/\\s*\$//g";
-			fi;
-		elif [[ $GHZ24 -eq 1 ]]; then
+		if [[ ! -z `grep -a " cipher: " <<< "$AP"` ]]; then
+			AP=`sed "s/\x1b\[33m/\x1b[32m/g" <<< "$AP"`;
+		fi;
+
+		if [[ $GHZ24 -eq 1 ]]; then
 		   if [[ ! -z `grep -a "freq: 2[0-9]\{3\}" <<< $AP` ]]; then
 				echo "$AP" | sed "s/^ //g" | sed "s/\\s*\$//g";
 		   fi;
-		elif [[ ! -z "$PATTERN" ]]; then
-			if [[ ! -z `grep -a "$PATTERN" <<< $AP` ]]; then
-				echo "$AP" | sed "s/^ //g" | sed "s/\\s*\$//g";
-			fi;
 		else
 			echo "$AP" | sed "s/^ //g" | sed "s/\\s*\$//g";
 		fi;
