@@ -1,6 +1,7 @@
 # invert horizontal scrolling
 synclient HorizScrollDelta=-79
 synclient VertScrollDelta=-79
+#synclient CircularScrolling=1
 
 # set sensitivity
 synclient MinSpeed=1.5

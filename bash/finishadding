@@ -19,7 +19,7 @@ if [ ! -z $3 ]; then
 	limit=$3
 fi
 
-if [ $increment -gt 0 ]; then
+if [ 0 -lt "$increment" ]; then
 	while true; do
 		if [ $limit != false ] && [ $current -gt $limit ]; then
 			exit

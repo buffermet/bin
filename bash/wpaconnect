@@ -1,13 +1,19 @@
 #!/bin/bash
 
+WEXT=0;
+
 show_help() {
-	echo -e "Connect to WPA/WPA2 wireless network.\n  Usage: wpaconnect <interface> <path to wpa_supplicant config>";
+	echo "Connect to WPA/WPA2 wireless network.";
+	echo;
+	echo "Usage: wpaconnect <interface> <path to wpa_supplicant config> <options>";
 }
 
 for cvar in $@; do
-	if [[ $cvar == "-h" || $cvar == "-help" || $cvar == "--help" ]]; then
+	if [[ "$cvar" == "-h" || "$cvar" == "-help" || "$cvar" == "--help" ]]; then
 		show_help;
 		exit 0;
+	elif [[ "$cvar" == "-wext" || "$cvar" == "--wext" ]]; then
+		WEXT=1;
 	fi;
 done;
 
@@ -34,16 +40,25 @@ for PID in $PIDS; do
 done;
 dhclient -r "$1";
 
+if [[ WEXT -eq 0 ]]; then
+	TYPE="nl80211";
+else
+	echo "Using wext.";
+	TYPE="wext";
+fi;
+
 ip link set "$1" down \
 	&& iw "$1" set type managed \
 	&& ip link set "$1" up \
-	&& wpa_supplicant -i "$1" -c "$2" -D nl80211 | while IFS= read -r line; do
+	&& wpa_supplicant -i "$1" -c "$2" -D "$TYPE" | while IFS= read -r line; do
+		echo "$line";
 		if [[ ! -z `grep -a "CTRL-EVENT-CONNECTED - Connection to .* completed" <<< "$line"` ]]; then
 			# successfully connected
-			dhclient -v -4 "$1" && echo "Connected.";
+			dhclient -v "$1" && echo "Connected.";
 			sigkill "wpaconnect $1 $2" &>/dev/null;
 		fi;
 	done;
 
 # failed to connect
 exit 1;
+
