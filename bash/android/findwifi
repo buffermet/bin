@@ -1,0 +1,120 @@
+#!/bin/bash
+
+GHZ24=0;
+GHZ5=0;
+DURATION=100;
+
+function showOptions() {
+	echo;
+	echo    "Usage: findwifi <INTERFACE> <options>";
+	echo;
+	echo -e "\e[1mOptions\e[0m";
+	echo;
+	echo -e " \e[1mFilter options\e[0m";
+	echo;
+	echo -e "  \e[33m-2\e[0mghz              Only show 2.4GHz networks.";
+	echo -e "  \e[33m-5\e[0mghz              Only show 5GHz networks.";
+	echo;
+	echo -e "  \e[33m-d\e[0muration \e[33m<INT>\e[0m    Set duration of scan (percentage of \`iw <devname> scan\` duration) [default=100].";
+	echo -e "  \e[33m-h\e[0melp              Show this menu.";
+	echo;
+}
+
+CVARS=("$@");
+i=0;
+for CVAR in "${CVARS[@]}"; do
+	if [[ ! -z `grep -a "^[-]\{1,\}h\(elp\|\)\$" <<< $CVAR` ]]; then
+		showOptions;
+		exit 0;
+	elif [[ ! -z `grep -a "^[-]\{1,\}2\$" <<< $CVAR` ]]; then
+		GHZ24=1;
+	elif [[ ! -z `grep -a "^[-]\{1,\}5\$" <<< $CVAR` ]]; then
+		GHZ5=1;
+	elif [[ ! -z `grep -a "^[-]\{1,\}d\(uration\|\)\$" <<< $CVAR` ]]; then
+		DURATION="${CVARS[$i+1]}";
+		let i++;
+	fi;
+
+	let i++;
+done;
+
+function isInterface() {
+	if [[ ! -z `grep -a "^\\s*Interface\\s$1" <<< \`iw dev\`` ]]; then
+		return 1;
+	fi;
+
+	return 0;
+}
+
+# parse
+if isInterface "$1"; then
+	echo "error: invalid interface: $1"
+	showOptions;
+	exit 1;
+fi
+
+iw "$1" set type managed;
+ip link set "$1" up;
+
+# scan
+APS_STR=`su -c "$PREFIX/bin/iw $1 scan duration $DURATION" \
+	| grep -ao "SSID:.*\$\|signal:.*\$\|freq:.*\$\|cipher.*\$\|suites:.*\$\|^BSS.*\$" \
+	| sed "s/[(]on \\w\+[)]//g" \
+	| sed "s/^BSS/\\nBSSID:/g" \
+	| sed "s/^SSID:.\(.*\)\$/SSID: \x1b[32m\1\x1b[0m/g"`;
+
+if [[ -z "$APS_STR" ]]; then
+	# retry
+	sleep 1;
+	echo "$(findwifi $@)";
+else
+	# create escape values
+	EOL=`pwgen -s 32 1`;
+	SPACE=`pwgen -s 32 1`;
+
+	# escape serializers
+	ESC_APS_STR=`sed "s/^\$/$EOL/g" <<< "$APS_STR"`;
+	ESC_APS_STR=`sed "s/\$/$EOL/g" <<< "$ESC_APS_STR"`;
+	ESC_APS_STR=`echo $ESC_APS_STR | sed "s/\\s/$SPACE/g"`;
+
+	ESC_APS="${ESC_APS_STR//${EOL}${EOL}/ }";
+	for ESC_AP in $ESC_APS; do
+		# unescape ap
+		ESC_AP=`sed "s/$EOL/ /g" <<< $ESC_AP`;
+		AP=`sed "s/$SPACE/ /g" <<< $ESC_AP`;
+
+		# if empty SSID
+		if [[ ! -z `grep -a "  SSID: .\[32m.\[0m  cipher: " <<< "$AP"` ]]; then
+			# remove SSID field
+			AP=`sed "s/  SSID: .\[32m\(.*  cipher: \)/\1/g" <<< "$AP"`;
+		fi;
+
+		# if no cipher
+		if [[ ! -z `grep -a "  cipher: " <<< "$AP"` ]]; then
+			# color secured networks
+			AP=`sed "s/BSSID: \(.\{17\}\)  /BSSID: \x1b[32m\1\x1b[0m  /g" <<< "$AP"`;
+		else
+			# color open networks
+			AP=`sed "s/  SSID: .\[32m\(.*\?\).\[0m/\  SSID: \x1b[33m\1\x1b[0m/g" <<< "$AP"`;
+			AP=`sed "s/BSSID: \(.\{17\}\)  /BSSID: \x1b[33m\1\x1b[0m  /g" <<< "$AP"`;
+		fi;
+
+		DROP=0;
+		if [[ ! ($GHZ24 -eq 1 && $GHZ5 -eq 1) ]]; then
+			if [[ $GHZ24 -eq 1 ]]; then
+				if [[ ! -z `grep -a "  freq: 5[0-9]\{3\}  " <<< "$AP"` ]]; then
+					DROP=1;
+				fi
+			elif [[ $GHZ5 -eq 1 ]]; then
+				if [[ ! -z `grep -a "  freq: 2[0-9]\{3\}  " <<< "$AP"` ]]; then
+					DROP=1;
+				fi;
+			fi;
+		fi;
+
+		# print ap info
+		if [[ $DROP -eq 0 ]]; then
+			echo "$AP" | sed "s/^ //g" | sed "s/\\s*\$//g";
+		fi;
+	done;
+fi;
