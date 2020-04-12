@@ -3,6 +3,7 @@
 GHZ24=0;
 GHZ5=0;
 DURATION=100;
+OPEN=0;
 
 function showOptions() {
 	echo;
@@ -14,9 +15,9 @@ function showOptions() {
 	echo;
 	echo -e "  \e[33m-2\e[0mghz              Only show 2.4GHz networks.";
 	echo -e "  \e[33m-5\e[0mghz              Only show 5GHz networks.";
-	echo;
 	echo -e "  \e[33m-d\e[0muration \e[33m<INT>\e[0m    Set duration of scan (percentage of \`iw <devname> scan\` duration) [default=100].";
 	echo -e "  \e[33m-h\e[0melp              Show this menu.";
+	echo -e "  \e[33m-o\e[0mpen              Only show open networks.";
 	echo;
 }
 
@@ -26,13 +27,15 @@ for CVAR in "${CVARS[@]}"; do
 	if [[ ! -z `grep -a "^[-]\{1,\}h\(elp\|\)\$" <<< $CVAR` ]]; then
 		showOptions;
 		exit 0;
-	elif [[ ! -z `grep -a "^[-]\{1,\}2\$" <<< $CVAR` ]]; then
+	elif [[ ! -z `grep -a "^[-]\+2\$" <<< $CVAR` ]]; then
 		GHZ24=1;
-	elif [[ ! -z `grep -a "^[-]\{1,\}5\$" <<< $CVAR` ]]; then
+	elif [[ ! -z `grep -a "^[-]\+5\$" <<< $CVAR` ]]; then
 		GHZ5=1;
-	elif [[ ! -z `grep -a "^[-]\{1,\}d\(uration\|\)\$" <<< $CVAR` ]]; then
+	elif [[ ! -z `grep -a "^[-]\+d\(uration\|\)\$" <<< $CVAR` ]]; then
 		DURATION="${CVARS[$i+1]}";
 		let i++;
+	elif [[ ! -z `grep -a "^[-]\+o\(pen\|\)\$" <<< $CVAR` ]]; then
+		OPEN=1;
 	fi;
 
 	let i++;
@@ -84,31 +87,36 @@ else
 		AP=`sed "s/$SPACE/ /g" <<< $ESC_AP`;
 
 		# if empty SSID
-		if [[ ! -z `grep -a "  SSID: .\[32m.\[0m  cipher: " <<< "$AP"` ]]; then
+		if [[ ! -z `grep -a " SSID: .\[32m.\[0m cipher: " <<< "$AP"` ]]; then
 			# remove SSID field
-			AP=`sed "s/  SSID: .\[32m\(.*  cipher: \)/\1/g" <<< "$AP"`;
+			AP=`sed "s/ SSID: .\[32m\(.* cipher: \)/\1/g" <<< "$AP"`;
 		fi;
 
 		# if no cipher
-		if [[ ! -z `grep -a "  cipher: " <<< "$AP"` ]]; then
+		if [[ ! -z `grep -a " cipher: " <<< "$AP"` ]]; then
 			# color secured networks
-			AP=`sed "s/BSSID: \(.\{17\}\)  /BSSID: \x1b[32m\1\x1b[0m  /g" <<< "$AP"`;
+			AP=`sed "s/BSSID: \(.\{17\}\) /BSSID: \x1b[32m\1\x1b[0m /g" <<< "$AP"`;
 		else
 			# color open networks
-			AP=`sed "s/  SSID: .\[32m\(.*\?\).\[0m/\  SSID: \x1b[33m\1\x1b[0m/g" <<< "$AP"`;
-			AP=`sed "s/BSSID: \(.\{17\}\)  /BSSID: \x1b[33m\1\x1b[0m  /g" <<< "$AP"`;
+			AP=`sed "s/ SSID: .\[32m\(.*\?\).\[0m/\ SSID: \x1b[33m\1\x1b[0m/g" <<< "$AP"`;
+			AP=`sed "s/BSSID: \(.\{17\}\) /BSSID: \x1b[33m\1\x1b[0m /g" <<< "$AP"`;
 		fi;
 
 		DROP=0;
 		if [[ ! ($GHZ24 -eq 1 && $GHZ5 -eq 1) ]]; then
 			if [[ $GHZ24 -eq 1 ]]; then
-				if [[ ! -z `grep -a "  freq: 5[0-9]\{3\}  " <<< "$AP"` ]]; then
+				if [[ ! -z `grep -a " freq: 5[0-9]\{3\} " <<< "$AP"` ]]; then
 					DROP=1;
 				fi
 			elif [[ $GHZ5 -eq 1 ]]; then
-				if [[ ! -z `grep -a "  freq: 2[0-9]\{3\}  " <<< "$AP"` ]]; then
+				if [[ ! -z `grep -a " freq: 2[0-9]\{3\} " <<< "$AP"` ]]; then
 					DROP=1;
 				fi;
+			fi;
+		fi;
+		if [[ $OPEN -eq 1 ]]; then
+			if [[ ! -z `grep -a " cipher: " <<< "$AP"` ]]; then
+				DROP=1;
 			fi;
 		fi;
 
