@@ -1,9 +1,10 @@
 /bin/nano \
-	--linenumbers \
-	--autoindent \
-	--tabsize=2 \
-	--tabstospaces \
-	--nowrap \
-	--afterends \
-	--zap \
+  --linenumbers \
+  --autoindent \
+  --tabsize=2 \
+  --tabstospaces \
+  --nonewlines \
+  --nowrap \
+  --afterends \
+  --zap \
     "$@"

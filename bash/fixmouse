@@ -4,13 +4,11 @@ synclient VertScrollDelta=-79
 #synclient CircularScrolling=1
 
 # set sensitivity
-synclient MinSpeed=1.5
-synclient MaxSpeed=16
-synclient AccelFactor=0.06
-#synclient AccelFactor=0.05
-# 20
+synclient MinSpeed=2.5
+synclient MaxSpeed=18
+synclient AccelFactor=0.0875
 synclient CoastingSpeed=0
-#synclient CoastingSpeed=0.01
+#synclient CoastingSpeed=1.4
 #synclient CoastingFriction=20
 
 # remove annoyances
@@ -18,4 +16,5 @@ synclient HorizHysteresis=0
 synclient VertHysteresis=0
 
 # disable tap while typing
+sigterm syndaemon &>/dev/null
 syndaemon -d -t -i 0.5

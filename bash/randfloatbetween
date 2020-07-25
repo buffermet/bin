@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+[ -z "$2" ] \
+  && echo "usage: randfloatbetween 1 2" \
+  && exit 1;
+
+OPERAND=$(
+  awk -v n=1 -v seed="$RANDOM" \
+  'BEGIN { srand(seed); for (i=0; i<n; ++i) printf("%.4f\n", rand()) }');
+
+echo | awk "{ print (($1)+(($2)-($1))*($OPERAND)) }";
+

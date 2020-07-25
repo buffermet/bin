@@ -1,0 +1,13 @@
+
+if [[ ! -z "$1" && "$1" -gt 19 && "$1" -lt 101 ]]; then
+  xprop \
+    -f \
+      _NET_WM_WINDOW_OPACITY \
+      32c \
+    -set \
+      _NET_WM_WINDOW_OPACITY \
+      $(printf 0x%x $((0xffffffff * $1 / 100)));
+else
+  echo "usage: setwindowopacity <PERCENT>";
+  exit 1;
+fi;

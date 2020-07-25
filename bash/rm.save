@@ -1,0 +1,82 @@
+#!/bin/bash
+
+RM_ARGS=("");
+PATH_CANDIDATES=("");
+
+BIN_VARIANTS=(`which -a rm | grep -av "buffermet"`);
+
+IMPORTANT_PATHS=("~");
+for DIR_ENTRY in `ls /`; do
+  IMPORTANT_PATHS+=("/${DIR_ENTRY}");
+done;
+
+function remove_path() {
+  for THIS_RM_BIN in $BIN_VARIANTS; do
+    echo "debug: for $THIS_BIN in \$BIN_VARIANTS"
+    echo "breaking now";
+    break;
+    #if `"$THIS_RM_BIN" "$RM_ARGS" "$THIS_PATH"`; then
+      break;
+    #fi;
+  done;
+}
+
+function confirm_deletion() {
+  THIS_PATH="$1";
+	echo -e "\x1b[1;31mWARNING\x1b[0m"
+}
+
+PROMPT=false
+for ARG in $@; do
+	if [[ ! -z `grep -a "^\s*[\-]\+[a-zA-Z0-9]" "$ARG"` ]]; then
+	  if [[ ! -z `grep -ai "r" <<< "$ARG"` ]]; then
+  		PROMPT=true;
+	  fi;
+	  RM_ARGS+=("$ARG");
+  else
+    # warn about dir entries in /
+    if [[ \
+         [[ ! -z `grep -a "^\s*[/]\+\([./]*\|[^/]*\)\s*\$" <<< "$ARG"` ]] \
+      || [[ \
+              [[ `pwd` == "/" ]] \
+           && [[ ! -z `grep -a "^\s*[^/]\+\$" <<< "$ARG"` ]] \
+         ]] \
+    ]]; then
+      THIS_PATH="$ARG";
+    	echo -e "\x1b[1;31m!!!\x1b[0m"
+    	echo;
+    	echo -e "\x1b[1;31mBIG WARNING\x1b[0m"
+    	echo -e "\x1b[1;31mBIG WARNING\x1b[0m"
+    	echo -e "\x1b[1;31mBIG WARNING\x1b[0m"
+    	echo;
+    	echo -e "\x1b[1;31m!!!\x1b[0m"
+    	echo;
+      read -p "You have selected \x1b[1m${THIS_PATH}\x1b[0m for deletion!" ANSWER;
+      read -p "Are you sure you want to do this? y/N" ANSWER;
+      # if answer is not yes
+      if [[ -z `grep -ai "^y\$" <<< "$ANSWER"` ]]; then
+        echo -e "[\x1b[32mRESCUED\x1b[0m] Not removing $THIS_PATH";
+      else
+        PATH_CANDIDATES+=("$ARG");
+      fi;
+    else
+      PATH_CANDIDATES+=("$ARG");
+    fi;
+	fi;
+done
+
+for THIS_PATH in $PATH_CANDIDATES; do
+
+done;
+
+if $PROMPT; then
+	echo -e "\x1b[1;31mWARNING\x1b[0m";
+	read -p "Are you absolutely sure you want to delete $THIS_PATH? y/N " ANSWER;
+	if [[ ! -z $(grep -ai "^y\$" <<< "$ANSWER") ]]; then
+    
+	else
+		echo Aborted.
+	fi;
+else
+  remove_path "$THIS_PATH";
+fi
