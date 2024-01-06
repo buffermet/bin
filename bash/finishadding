@@ -19,11 +19,9 @@ if [ ! -z $3 ]; then
 	limit=$3
 fi
 
-if [ 0 -lt "$increment" ]; then
+if [ $increment -gt 0 ]; then
 	while true; do
-		if [ $limit != false ] && [ $current -gt $limit ]; then
-			exit
-		fi
+		[ $limit != false ] && [ $current -gt $limit ] && exit
 		echo $current
 		current=$(($current+$increment))
 	done
