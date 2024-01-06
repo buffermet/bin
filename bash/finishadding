@@ -7,17 +7,9 @@ current=0
 increment=1
 limit=false
 
-if [ ! -z $1 ]; then
-	increment=$1
-fi
-
-if [ ! -z $2 ]; then
-	current=$2
-fi
-
-if [ ! -z $3 ]; then
-	limit=$3
-fi
+[ ! -z $1 ] && increment=$1
+[ ! -z $2 ] && current=$2
+[ ! -z $3 ] && limit=$3
 
 if [ $increment -gt 0 ]; then
 	while true; do
