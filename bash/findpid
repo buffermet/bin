@@ -11,4 +11,4 @@ for ARG in $@; do
 	fi
 done
 
-ps aux | grep "$@" | grep -v "$0 $1" | grep -v "grep"
+ps aux | grep "$@" | grep -v 'grep \|findpid ' | awk '{print $2}'
