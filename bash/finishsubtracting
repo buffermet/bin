@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Start subtracting X from Y until we reached Z
-# Usage: startadding 1 3 5
+# Usage: finishsubtracting 1 10 0
 
 current=0
 increment=1
@@ -21,9 +21,7 @@ fi
 
 if [ $increment -gt 0 ]; then
 	while true; do
-		if [ $limit != false ] && [ $current -lt $limit ]; then
-			exit
-		fi
+		[ $limit != false ] && [ $current -lt $limit ] && exit
 		echo $current
 		current=$(($current-$increment))
 	done
