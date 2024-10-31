@@ -1,0 +1,9 @@
+#!/bin/bash
+
+showHelp() {
+        echo "usage: ifdel <interface>"
+}
+
+[ -z $1 ] && showHelp && exit 1
+
+sudo ip link delete $1
