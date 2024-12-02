@@ -1,6 +1,5 @@
 #!/bin/bash
 
-EXIT_CODE=1;
 WEXT=0;
 
 show_help() {
@@ -51,14 +50,11 @@ fi;
 ip link set "$1" down \
 	&& iw "$1" set type managed \
 	&& ip link set "$1" up \
-	&& echo "Connecting to `grep -ao '[^/]\+$' <<< $2`" \
 	&& wpa_supplicant -i "$1" -c "$2" -D "$TYPE" | while IFS= read -r line; do
 		echo "$line";
 		if [[ ! -z `grep -a "CTRL-EVENT-CONNECTED - Connection to .* completed" <<< "$line"` ]]; then
-      dhclient -v "$1" && echo "Connected.";
-			sigkill "wpaconnect $1" &>/dev/null;
-			EXIT_CODE=0;
+			dhclient -v "$1";
 		fi;
 	done;
 
-exit $EXIT_CODE;
+
