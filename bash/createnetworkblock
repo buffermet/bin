@@ -1,0 +1,84 @@
+#!/bin/bash
+
+function show_help() {
+	echo "usage: createnetworkblock <options>"
+	echo -e "\nOptions:\n"
+	echo "  --name <FILENAME>  Enter filename for this network block."
+	echo "  --essid <ESSID>    Enter ESSID of access point(s)."
+	echo "  --bssid <BSSID>    Enter accepted BSSID(s) of access point(s) (separated by /)"
+	echo "  --psk <PSK>        Enter preshared key of access point(s)."
+	echo -e "\nexample: createnetworkblock --name westfield_shopping_centre --essid \"Westfield Free WiFi\" --bssid AA:AA:AA:AA:AA:AA/BB:BB:BB:BB:BB:BB\n"
+	exit
+}
+
+if [[ -z $1 ]]; then
+	show_help
+else
+	# Prepare variables
+	CONTAINER="network={{{essid}}{{bssid}}{{psk}}}"
+	CVARS=("$@")
+
+	# Parse options
+	for i in ${!CVARS[@]}; do
+		if [[ ${CVARS[$i]} == "--name" ]]; then
+			if [[ ${CVARS[$i+1]} ]]; then
+				NAME=${CVARS[$i+1]}
+			else
+				show_help
+			fi
+		elif [[ ${CVARS[$i]} == "--essid" ]]; then
+			if [[ ${CVARS[$i+1]} ]]; then
+				ESSID=$(echo ${CVARS[$i+1]} | sed "s/\ /\\\\ /")
+			else
+				show_help
+			fi
+		elif [[ ${CVARS[$i]} == "--bssid" ]]; then
+			if [[ ${CVARS[$i+1]} ]]; then
+				BSSID=${CVARS[$i+1]}
+			else
+				show_help
+			fi
+		elif [[ ${CVARS[$i]} == "--psk" ]]; then
+			if [[ ${CVARS[$i+1]} ]]; then
+				PSK=${CVARS[$i+1]}
+			else
+				show_help
+			fi
+		fi
+	done
+
+	# Insufficient options provided
+	if [[ ! $NAME ]]; then
+		echo -e "Missing filename.\n"
+		show_help
+	elif ! [[ $ESSID || $BSSID ]]; then
+		echo -e "Missing ESSID or BSSID.\n"
+		show_help
+	fi
+
+	# Configure network block
+	if [[ $ESSID ]]; then
+		CONTAINER=$(echo $CONTAINER | sed "s/{{essid}}/\\\\n\\\\tssid=\"$ESSID\"/")
+	else
+		CONTAINER=$(echo $CONTAINER | sed "s/{{essid}}//")
+	fi
+
+	if [[ $BSSID ]]; then
+		CONTAINER=$(echo $CONTAINER | sed "s/{{bssid}}/\\\\n\\\\tbssid_whitelist=$BSSID/")
+	else
+		CONTAINER=$(echo $CONTAINER | sed "s/{{bssid}}//")
+	fi
+
+	if [[ $PSK ]]; then
+		CONTAINER=$(echo $CONTAINER | sed "s/{{psk}}/\\\\n\\\\tpsk=\"$PSK\"/")
+	else
+		CONTAINER=$(echo $CONTAINER | sed "s/{{psk}}/\\\\n\\\\tkey_mgmt=NONE/")
+	fi
+
+	CONTAINER=$(echo $CONTAINER | sed "s/}$/\\\\n}/")
+
+	# Save network block
+	echo -e $CONTAINER > /etc/wpa_supplicant/$NAME
+
+	echo "Network block saved as /etc/wpa_supplicant/$NAME"
+fi
