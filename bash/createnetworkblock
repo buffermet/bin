@@ -2,12 +2,17 @@
 
 function show_help() {
 	echo "usage: createnetworkblock <options>"
-	echo -e "\nOptions:\n"
-	echo "  --name <FILENAME>  Enter filename for this network block."
-	echo "  --essid <ESSID>    Enter ESSID of access point(s)."
-	echo "  --bssid <BSSID>    Enter accepted BSSID(s) of access point(s) (separated by /)"
-	echo "  --psk <PSK>        Enter preshared key of access point(s)."
-	echo -e "\nexample: createnetworkblock --name westfield_shopping_centre --essid \"Westfield Free WiFi\" --bssid AA:AA:AA:AA:AA:AA/BB:BB:BB:BB:BB:BB\n"
+	echo
+	echo "Options:"
+	echo
+	echo "  --name <FILENAME>     Enter filename for this network block."
+	echo "  --essid <ESSID>       Enter ESSID of access point(s)."
+	echo "  --bssid <BSSID>       Enter accepted BSSID(s) of access point(s) (separated by /)"
+	echo "  --protocol <PROTOCOL> Enter security protocol. (wpa2,wpa3) (default=wpa3)"
+	echo "  --psk <PSK>           Enter preshared key of access point(s)."
+	echo
+	echo "example: createnetworkblock --name westfield_shopping_centre --essid \"Westfield Free WiFi\" --bssid AA:AA:AA:AA:AA:AA/BB:BB:BB:BB:BB:BB --protocol wpa3"
+	echo
 	exit
 }
 
@@ -15,8 +20,9 @@ if [[ -z $1 ]]; then
 	show_help
 else
 	# Prepare variables
-	CONTAINER="network={{{essid}}{{bssid}}{{psk}}}"
+	CONTAINER="network={{{essid}}{{bssid}}{{psk}}{{protocol}}}"
 	CVARS=("$@")
+	PROTOCOL="wpa3"
 
 	# Parse options
 	for i in ${!CVARS[@]}; do
@@ -38,6 +44,12 @@ else
 			else
 				show_help
 			fi
+		elif [[ ${CVARS[$i]} == "--protocol" ]]; then
+			if [[ ${CVARS[$i+1]} ]]; then
+				PROTOCOL=${CVARS[$i+1]}
+			else
+				show_help
+			fi
 		elif [[ ${CVARS[$i]} == "--psk" ]]; then
 			if [[ ${CVARS[$i+1]} ]]; then
 				PSK=${CVARS[$i+1]}
@@ -49,11 +61,21 @@ else
 
 	# Insufficient options provided
 	if [[ ! $NAME ]]; then
-		echo -e "Missing filename.\n"
+		echo -e "Error: missing filename.\n"
 		show_help
+		exit 1
 	elif ! [[ $ESSID || $BSSID ]]; then
-		echo -e "Missing ESSID or BSSID.\n"
+		echo -e "Error: missing ESSID or BSSID.\n"
 		show_help
+		exit 1
+	elif [[ ! -z $PROTOCOL && -z `echo $PROTOCOL | grep -io '^wpa[23]$'` ]]; then
+		echo -e "Error: invalid protocol.\n"
+		show_help
+		exit 1
+	elif [[ -z $PSK && ! -z $PROTOCOL ]]; then
+		echo -e "Error: cannot select WPA2/WPA3 without PSK.\n"
+		show_help
+		exit 1
 	fi
 
 	# Configure network block
@@ -75,10 +97,15 @@ else
 		CONTAINER=$(echo $CONTAINER | sed "s/{{psk}}/\\\\n\\\\tkey_mgmt=NONE/")
 	fi
 
+	if [[ ! -z `echo $PROTOCOL | grep -io '^wpa2$'` ]]; then
+		CONTAINER=$(echo $CONTAINER | sed "s/{{protocol}}//")
+	else
+		CONTAINER=$(echo $CONTAINER | sed "s/{{protocol}}/\\\\n\\\\tkey_mgmt=SAE\\\\n\\\\tieee80211w=1/")
+	fi
+
 	CONTAINER=$(echo $CONTAINER | sed "s/}$/\\\\n}/")
 
 	# Save network block
-	echo -e $CONTAINER > /etc/wpa_supplicant/$NAME
-
-	echo "Network block saved as /etc/wpa_supplicant/$NAME"
+	echo -e $CONTAINER > /etc/wpa_supplicant/$NAME \
+		&& echo "Network block saved as /etc/wpa_supplicant/$NAME"
 fi
