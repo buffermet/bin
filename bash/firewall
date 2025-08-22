@@ -1,0 +1,17 @@
+# ipp
+sudo iptables -A INPUT -p tcp --destination-port 631 -j DROP
+sudo iptables -A INPUT -p tcp --source-port 631 -j DROP
+sudo iptables -A INPUT -p udp --destination-port 631 -j DROP
+sudo iptables -A INPUT -p udp --source-port 631 -j DROP
+
+# mdns
+sudo iptables -A INPUT -p tcp --destination-port 5353 -j DROP
+sudo iptables -A INPUT -p tcp --source-port 5353 -j DROP
+sudo iptables -A INPUT -p udp --destination-port 5353 -j DROP
+sudo iptables -A INPUT -p udp --source-port 5353 -j DROP
+
+# llmnr
+sudo iptables -A INPUT -p tcp --destination-port 5355 -j DROP
+sudo iptables -A INPUT -p tcp --source-port 5355 -j DROP
+sudo iptables -A INPUT -p udp --destination-port 5355 -j DROP
+sudo iptables -A INPUT -p udp --source-port 5355 -j DROP
