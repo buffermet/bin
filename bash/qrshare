@@ -1,3 +1,3 @@
 f=`pwgen 8 1`;
-cat events.json2 | qrencode -o /tmp/${f}.png \
-	&& xdg-open /tmp/${f}.png;
+cat $1 | qrencode -o /tmp/qrshare-${f}.png \
+	&& xdg-open /tmp/qrshare-${f}.png;
