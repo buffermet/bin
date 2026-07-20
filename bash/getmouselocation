@@ -1,9 +1,9 @@
-# echoes mouse coordinates (wayland solution)
+# echoes mouse coordinates (wayland solution, don't forget the 2 files below)
 
 # this only works globally on x11
 #xdotool getmouselocation | grep -o 'x:.\+ y:[^ ]\+' | sed 's/[^ 0-9]//g'
 
-# wayland workaround (don't forget the 2 files below)
+# wayland workaround
 qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.unloadScript getmouselocation &>/dev/null
 qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript \
 	"$HOME/.local/share/kwin/scripts/getmouselocation/contents/code/main.js" \
@@ -11,13 +11,12 @@ qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript \
 qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.start
 coords=""
 attempts=0
-while [[ -z `echo $coords | grep '[0-9]\+ [0-9]\+'` && $attempts -lt 20 ]]; do
+while [[ $attempts -lt 20 ]]; do
 	attempts=$(($attempts + 1))
 	coords=$(journalctl --user -u plasma-kwin_wayland -o cat -n 1 | grep 'Mouse coordinates' | grep -o '[0-9]\+ [0-9]\+')
-	sleep 0.1
+	[[ ! -z `echo $coords | grep '[0-9]\+ [0-9]\+'` ]] && break || sleep 0.1
 done
 echo $coords
-
 
 
 
