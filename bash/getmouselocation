@@ -1,0 +1,38 @@
+# echoes mouse coordinates (wayland solution)
+
+# this only works globally on x11
+#xdotool getmouselocation | grep -o 'x:.\+ y:[^ ]\+' | sed 's/[^ 0-9]//g'
+
+# wayland workaround (don't forget the 2 files below)
+qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.unloadScript getmouselocation &>/dev/null
+qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.loadScript \
+	"$HOME/.local/share/kwin/scripts/getmouselocation/contents/code/main.js" \
+	getmouselocation &>/dev/null
+qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.start
+coords=""
+attempts=0
+while [[ -z `echo $coords | grep '[0-9]\+ [0-9]\+'` && $attempts -lt 20 ]]; do
+	attempts=$(($attempts + 1))
+	coords=$(journalctl --user -u plasma-kwin_wayland -o cat -n 1 | grep 'Mouse coordinates' | grep -o '[0-9]\+ [0-9]\+')
+	sleep 0.1
+done
+echo $coords
+
+
+
+
+# ~/.local/share/kwin/scripts/getmouselocation/contents/code/main.js
+#var pos = workspace.cursorPos;
+#print("Mouse coordinates: " + pos.x + " " + pos.y);
+
+# ~/.local/share/kwin/scripts/getmouselocation/metadata.json
+#{
+#	"KPackageStructure": "KWin/Script",
+#	"KPlugin": {
+#		"Id": "getmouselocation",
+#		"Name": "Get Mouse Location",
+#		"Description": "Prints the current mouse position",
+#		"Version": "1.0",
+#		"License": "GPL"
+#	}
+#}
