@@ -1,0 +1,24 @@
+destination_dir_path=/sdcard/Download
+get_latest_version() {
+	latest_apk_url=`curl -s https://api.github.com/repos/brave/brave-browser/releases \
+		| grep -a \/Bravearm64Universal -m 1 \
+			| grep -o "https.*[.]apk" --color=none`
+	latest_version=`echo $latest_apk_url | grep -ao "v[0-9][^/]\+"`
+}
+while [[ -z $latest_version ]]; do
+	get_latest_version
+	[[ -z $latest_version ]] && sleep 4
+done
+update=0
+if [[ ! -z `echo "$0 $@" | grep -a ' [-]\+force'` ]]; then
+	update=1
+elif [[ ! -f ${destination_dir_path}/brave_version ]]; then
+	update=1
+elif [[ `cat ${destination_dir_path}/brave_version` != "$latest_version" ]]; then
+	termux-notification --group brave -c "Brave released $latest_version."
+	update=1
+fi
+[[ $update == 1 ]] \
+	&& echo -n $latest_version > ${destination_dir_path}/brave_version \
+	&& curl -L "$latest_apk_url" -o ${destination_dir_path}/Bravearm64Universal.apk \
+	&& pm install ${destination_dir_path}/Bravearm64Universal.apk
