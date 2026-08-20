@@ -1,0 +1,36 @@
+#!/usr/bin/node
+
+// Utility to read JSON object properties from a shell environment.
+
+const fs = require("fs");
+
+process.env.NO_COLOR = "1";
+
+const propName = process.argv[3];
+if (!propName) {
+	console.error("no object property name provided.");
+	process.exit(1);
+}
+
+if (!process.argv[2]) {
+	console.error("no JSON filepath provided.");
+	process.exit(1);
+}
+
+try {
+	const plaintext = fs.readFileSync(process.argv[2]);
+	const json = JSON.parse(plaintext);
+	if (!json.hasOwnProperty(propName)) {
+		console.error(`object property with given name ${propName} not found.`);
+		process.exit(1);
+	}
+	const propVal = json[propName];
+	if (typeof propVal !== "object") {
+		console.error(`property ${propName} is not a object`);
+		process.exit(1);
+	}
+	console.log(JSON.stringify(propVal));
+} catch (err) {
+	console.error(err);
+	process.exit(1);
+}
