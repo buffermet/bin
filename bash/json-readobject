@@ -26,7 +26,7 @@ try {
 	}
 	const propVal = json[propName];
 	if (typeof propVal !== "object") {
-		console.error(`property ${propName} is not a object`);
+		console.error(`property ${propName} is not an object`);
 		process.exit(1);
 	}
 	console.log(JSON.stringify(propVal));
