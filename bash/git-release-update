@@ -1,0 +1,103 @@
+#!/usr/bin/node
+
+// Example of a git-release-manifest.json file.
+/*
+	{
+		"downloadPath": "/sdcard/Download/git-releases",
+		"repositories": {
+			"brave/brave-browser": {
+				"filenameSelector": "Bravearm64Universal[.]apk$"
+			},
+			"uazo/cromite": {
+				"filenameSelector": "arm64_ChromePublic[.]apk$"
+			},
+			"T8RIN/ImageToolbox": {
+				"filenameSelector": "image-toolbox-.*-foss-arm64-v8a[.]apk$"
+			}
+		}
+	}
+*/
+
+import fs from "node:fs";
+import { Readable } from "node:stream";
+
+const boldgreen = "\x1b[1;32m";
+const green = "\x1b[32m";
+const yellow = "\x1b[33m";
+const reset = "\x1b[0m";
+
+(async () => {
+	const manifestFilePath = process.argv[2];
+	if (!manifestFilePath) {
+		console.error("no git-release-update-manifest.json file provided");
+		console.log("usage: git-release-update <MANIFEST>");
+		process.exit(1);
+	}
+
+	const manifest = JSON.parse(fs.readFileSync(manifestFilePath));
+	let downloadPath = manifest.downloadPath;
+	while (downloadPath.endsWith("/")) downloadPath = downloadPath.slice(0, -1);
+
+	const rxFilenameSanitizer = /[/\\;*?'"<>]/g;
+	const rxLatestVersion = /.*\/download\/([^/]+).*/g;
+	const rxFilename = /[^/]+$/g;
+
+	const getLatestDownloadUrl = async (repository, filenameSelector) => {
+		return new Promise(async (resolve, reject) => {
+			fetch(`https://api.github.com/repos/${repository}/releases`).then(res => {
+				res.json().then(arr => {
+					const assets = arr[0].assets;
+					if (!assets || assets.length === 0)
+						return reject("no assets found in API response.");
+					try {
+
+						const rxFilename = new RegExp(filenameSelector);
+						for (const asset of assets) {
+							const downloadUrl = asset.browser_download_url;
+							if (rxFilename.test(downloadUrl))
+								return resolve(downloadUrl);
+						}
+						reject("no version found");
+					} catch(err) {
+						reject(err);
+					}
+				}).catch(err => reject(err));
+			}).catch(err => reject(err));
+		});
+	};
+
+	const sleep = async ms => new Promise(resolve => setTimeout(resolve, ms));
+
+	for (const repository of Object.keys(manifest.repositories)) {
+		const repoData = manifest.repositories[repository];
+		const filenameSelector = repoData.filenameSelector;
+		const latestVersion = repoData.latestVersion;
+		console.log(`   (${repository}) Last downloaded version: ${green}${latestVersion}${reset}`);
+		await getLatestDownloadUrl(repository, filenameSelector).then(downloadUrl => {
+			const version = downloadUrl.replace(rxLatestVersion, "$1");
+			if (!version) {
+				console.error("no version found in URL: " + downloadUrl);
+				return;
+			}
+			console.log(`   (${repository}) Latest version: ${green}${version}${reset}`);
+			if (version !== latestVersion) {
+				fetch(downloadUrl).then(res => {
+					const filename = downloadUrl.match(rxFilename);
+					if (!filename) {
+						console.error(`no filename found in download URL: ${downloadUrl}`);
+						return;
+					}
+					const repoTag = repository.replaceAll(rxFilenameSanitizer, "-");
+						const destination = `${downloadPath}/${repoTag}-${version}-${filename}`;
+					console.log(` ${boldgreen}↓${reset} (${repository}) Downloading latest version to ${yellow}${destination}${reset}...`);
+					Readable.fromWeb(res.body).pipe(fs.createWriteStream(destination));
+					manifest.repositories[repository].latestVersion = version;
+					fs.writeFileSync(manifestFilePath, JSON.stringify(manifest, null, "\t"));
+				}).catch(err => console.error(err));
+			}
+		}).catch(err => console.error(err));
+		await sleep(2000);
+	}
+
+	process.exit(0);
+})();
