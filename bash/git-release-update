@@ -18,9 +18,8 @@
 	}
 */
 
+import { execSync } from "child_process";
 import fs from "node:fs";
-import { Readable } from "node:stream";
-import { pipeline } from "node:stream/promises";
 
 const boldgreen = "\x1b[1;32m";
 const green = "\x1b[32m";
@@ -39,9 +38,10 @@ const reset = "\x1b[0m";
 	let downloadPath = manifest.downloadPath;
 	while (downloadPath.endsWith("/")) downloadPath = downloadPath.slice(0, -1);
 
+	const rxFilename = /[^/]+$/g;
 	const rxFilenameSanitizer = /[/\\;*?'"<>]/g;
 	const rxLatestVersion = /.*\/download\/([^/]+).*/g;
-	const rxFilename = /[^/]+$/g;
+	const rxShellCommandSanitizer = /[;$`'"\\]/g;
 
 	const getLatestDownloadUrl = async (repository, filenameSelector) => {
 		return new Promise(async (resolve, reject) => {
@@ -52,10 +52,11 @@ const reset = "\x1b[0m";
 						return reject("no assets found in API response.");
 					try {
 
-						const rxFilename = new RegExp(filenameSelector);
+						const rxTargetFilename = new RegExp(filenameSelector);
 						for (const asset of assets) {
 							const downloadUrl = asset.browser_download_url;
-							if (rxFilename.test(downloadUrl))
+							const filename = downloadUrl.match(rxFilename)[0];
+							if (rxTargetFilename.test(filename))
 								return resolve(downloadUrl);
 						}
 						reject("no version found");
@@ -82,6 +83,10 @@ const reset = "\x1b[0m";
 			}
 			console.log(`   (${repository}) Latest version: ${green}${version}${reset}`);
 			if (version !== latestVersion) {
+				const cleanRepo = repository.replaceAll(rxShellCommandSanitizer, "");
+				const cleanVersion = version.replaceAll(rxShellCommandSanitizer, "");
+				execSync(`termux-notification --group git-release-update -c '${cleanRepo} released ${cleanVersion}'`);
+				downloadUrl = downloadUrl.replaceAll(rxShellCommandSanitizer, "");
 				fetch(downloadUrl).then(async res => {
 					const filename = downloadUrl.match(rxFilename)[0];
 					if (!filename) {
@@ -89,9 +94,10 @@ const reset = "\x1b[0m";
 						return;
 					}
 					const repoTag = repository.replaceAll(rxFilenameSanitizer, "-");
-					const destination = `${downloadPath}/${repoTag}-${version}-${filename}`;
+					const destination = `${downloadPath}/${repoTag}-${version}-${filename}`.replaceAll(
+						rxShellCommandSanitizer, "");
 					console.log(` ${boldgreen}↓${reset} (${repository}) Downloading latest version to ${yellow}${destination}${reset}...`);
-					await pipeline(Readable.fromWeb(res.body), fs.createWriteStream(destination));
+					execSync(`curl -Ls '${downloadUrl}' -o '${destination}'`);
 					manifest.repositories[repository].latestVersion = version;
 					fs.writeFileSync(manifestFilePath, JSON.stringify(manifest, null, "\t"));
 				}).catch(err => console.error(err));
@@ -99,6 +105,8 @@ const reset = "\x1b[0m";
 		}).catch(err => console.error(err));
 		await sleep(2000);
 	}
+
+	console.log("");
 
 	process.exit(0);
 })();
