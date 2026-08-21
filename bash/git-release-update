@@ -82,13 +82,13 @@ const reset = "\x1b[0m";
 			console.log(`   (${repository}) Latest version: ${green}${version}${reset}`);
 			if (version !== latestVersion) {
 				fetch(downloadUrl).then(res => {
-					const filename = downloadUrl.match(rxFilename);
+					const filename = downloadUrl.match(rxFilename)[0];
 					if (!filename) {
 						console.error(`no filename found in download URL: ${downloadUrl}`);
 						return;
 					}
 					const repoTag = repository.replaceAll(rxFilenameSanitizer, "-");
-						const destination = `${downloadPath}/${repoTag}-${version}-${filename}`;
+					const destination = `${downloadPath}/${repoTag}-${version}-${filename}`;
 					console.log(` ${boldgreen}↓${reset} (${repository}) Downloading latest version to ${yellow}${destination}${reset}...`);
 					Readable.fromWeb(res.body).pipe(fs.createWriteStream(destination));
 					manifest.repositories[repository].latestVersion = version;
