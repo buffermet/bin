@@ -2,20 +2,19 @@
 
 // Example of a git-release-manifest.json file.
 /*
-	{
-		"downloadPath": "/sdcard/Download/git-releases",
-		"repositories": {
-			"brave/brave-browser": {
-				"filenameSelector": "Bravearm64Universal[.]apk$"
-			},
-			"uazo/cromite": {
-				"filenameSelector": "arm64_ChromePublic[.]apk$"
-			},
-			"T8RIN/ImageToolbox": {
-				"filenameSelector": "image-toolbox-.*-foss-arm64-v8a[.]apk$"
-			}
+{
+	"repositories": {
+		"brave/brave-browser": {
+			"filenameSelector": "Bravearm64Universal[.]apk$"
+		},
+		"uazo/cromite": {
+			"filenameSelector": "arm64_ChromePublic[.]apk$"
+		},
+		"T8RIN/ImageToolbox": {
+			"filenameSelector": "image-toolbox-.*-foss-arm64-v8a[.]apk$"
 		}
 	}
+}
 */
 
 import { execSync } from "child_process";
@@ -35,8 +34,6 @@ const reset = "\x1b[0m";
 	}
 
 	const manifest = JSON.parse(fs.readFileSync(manifestFilePath));
-	let downloadPath = manifest.downloadPath;
-	while (downloadPath.endsWith("/")) downloadPath = downloadPath.slice(0, -1);
 
 	const rxFilename = /[^/]+$/g;
 	const rxFilenameSanitizer = /[/\\;*?'"<>]/g;
@@ -83,25 +80,11 @@ const reset = "\x1b[0m";
 			}
 			console.log(`   (${repository}) Latest version: ${green}${version}${reset}`);
 			if (version !== latestVersion) {
-				const cleanRepo = repository.replaceAll(rxShellCommandSanitizer, "");
-				const cleanVersion = version.replaceAll(rxShellCommandSanitizer, "");
 				downloadUrl = downloadUrl.replaceAll(rxShellCommandSanitizer, "");
+				console.log(` ${boldgreen}↓${reset} (${repository}) Requesting download...`);
 				execSync(`termux-notification --action "xdg-open '${downloadUrl}'" --group git-release-update -t 'Git Release Update' -c '${cleanRepo} released ${cleanVersion}'`);
-				// fetch(downloadUrl).then(async res => {
-					const filename = downloadUrl.match(rxFilename)[0];
-					if (!filename) {
-						console.error(`no filename found in download URL: ${downloadUrl}`);
-						return;
-					}
-					const repoTag = repository.replaceAll(rxFilenameSanitizer, "-");
-					const destination = `${downloadPath}/${repoTag}-${version}-${filename}`.replaceAll(
-						rxShellCommandSanitizer, "");
-					console.log(` ${boldgreen}↓${reset} (${repository}) Downloading latest version...`);
-					// execSync(`curl -Ls '${downloadUrl}' -o '${destination}'`);
-					// execSync(`xdg-open ${downloadUrl}`);
-					manifest.repositories[repository].latestVersion = version;
-					fs.writeFileSync(manifestFilePath, JSON.stringify(manifest, null, "\t"));
-				// }).catch(err => console.error(err));
+				manifest.repositories[repository].latestVersion = version;
+				fs.writeFileSync(manifestFilePath, JSON.stringify(manifest, null, "\t"));
 			}
 		}).catch(err => console.error(err));
 		await sleep(2000);
