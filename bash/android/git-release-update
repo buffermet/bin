@@ -80,6 +80,8 @@ const reset = "\x1b[0m";
 			}
 			console.log(`   (${repository}) Latest version: ${green}${version}${reset}`);
 			if (version !== latestVersion) {
+				const cleanRepo = repository.replaceAll(rxShellCommandSanitizer, "");
+				const cleanVersion = version.replaceAll(rxShellCommandSanitizer, "");
 				downloadUrl = downloadUrl.replaceAll(rxShellCommandSanitizer, "");
 				console.log(` ${boldgreen}↓${reset} (${repository}) Requesting download...`);
 				execSync(`termux-notification --action "xdg-open '${downloadUrl}'" --group git-release-update -t 'Git Release Update' -c '${cleanRepo} released ${cleanVersion}'`);
