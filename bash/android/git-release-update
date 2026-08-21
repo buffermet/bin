@@ -87,7 +87,7 @@ const reset = "\x1b[0m";
 				const cleanVersion = version.replaceAll(rxShellCommandSanitizer, "");
 				execSync(`termux-notification --group git-release-update -c '${cleanRepo} released ${cleanVersion}'`);
 				downloadUrl = downloadUrl.replaceAll(rxShellCommandSanitizer, "");
-				fetch(downloadUrl).then(async res => {
+				// fetch(downloadUrl).then(async res => {
 					const filename = downloadUrl.match(rxFilename)[0];
 					if (!filename) {
 						console.error(`no filename found in download URL: ${downloadUrl}`);
@@ -96,12 +96,12 @@ const reset = "\x1b[0m";
 					const repoTag = repository.replaceAll(rxFilenameSanitizer, "-");
 					const destination = `${downloadPath}/${repoTag}-${version}-${filename}`.replaceAll(
 						rxShellCommandSanitizer, "");
-					console.log(` ${boldgreen}↓${reset} (${repository}) Downloading latest version to ${yellow}${destination}${reset}...`);
+					console.log(` ${boldgreen}↓${reset} (${repository}) Downloading latest version...`);
 					// execSync(`curl -Ls '${downloadUrl}' -o '${destination}'`);
 					execSync(`xdg-open ${downloadUrl}`);
 					manifest.repositories[repository].latestVersion = version;
 					fs.writeFileSync(manifestFilePath, JSON.stringify(manifest, null, "\t"));
-				}).catch(err => console.error(err));
+				// }).catch(err => console.error(err));
 			}
 		}).catch(err => console.error(err));
 		await sleep(2000);
