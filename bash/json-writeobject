@@ -6,9 +6,9 @@ const fs = require("fs");
 
 process.env.NO_COLOR = "1";
 
-const propValue = process.argv[4];
-if (!propValue) {
-	console.error("no new object property value provided.");
+const filePath = process.argv[2];
+if (!filePath) {
+	console.error("no JSON filepath provided.");
 	process.exit(1);
 }
 
@@ -18,14 +18,14 @@ if (!propName) {
 	process.exit(1);
 }
 
-const filePath = process.argv[2];
-if (!filePath) {
-	console.error("no JSON filepath provided.");
+const propValue = process.argv[4];
+if (!propValue) {
+	console.error("no new object property value provided.");
 	process.exit(1);
 }
 
 try {
-	const plaintext = fs.readFileSync(process.argv[2]);
+	const plaintext = fs.readFileSync(filePath);
 	const json = JSON.parse(plaintext);
 	json[propName] = JSON.parse(propValue);
 	fs.writeFileSync(filePath, JSON.stringify(json));
