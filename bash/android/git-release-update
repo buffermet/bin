@@ -97,7 +97,8 @@ const reset = "\x1b[0m";
 					const destination = `${downloadPath}/${repoTag}-${version}-${filename}`.replaceAll(
 						rxShellCommandSanitizer, "");
 					console.log(` ${boldgreen}↓${reset} (${repository}) Downloading latest version to ${yellow}${destination}${reset}...`);
-					execSync(`curl -Ls '${downloadUrl}' -o '${destination}'`);
+					// execSync(`curl -Ls '${downloadUrl}' -o '${destination}'`);
+					execSync(`xdg-open ${downloadUrl}`);
 					manifest.repositories[repository].latestVersion = version;
 					fs.writeFileSync(manifestFilePath, JSON.stringify(manifest, null, "\t"));
 				}).catch(err => console.error(err));
