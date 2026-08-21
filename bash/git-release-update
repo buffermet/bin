@@ -20,6 +20,7 @@
 
 import fs from "node:fs";
 import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 
 const boldgreen = "\x1b[1;32m";
 const green = "\x1b[32m";
@@ -81,7 +82,7 @@ const reset = "\x1b[0m";
 			}
 			console.log(`   (${repository}) Latest version: ${green}${version}${reset}`);
 			if (version !== latestVersion) {
-				fetch(downloadUrl).then(res => {
+				fetch(downloadUrl).then(async res => {
 					const filename = downloadUrl.match(rxFilename)[0];
 					if (!filename) {
 						console.error(`no filename found in download URL: ${downloadUrl}`);
@@ -90,7 +91,7 @@ const reset = "\x1b[0m";
 					const repoTag = repository.replaceAll(rxFilenameSanitizer, "-");
 					const destination = `${downloadPath}/${repoTag}-${version}-${filename}`;
 					console.log(` ${boldgreen}↓${reset} (${repository}) Downloading latest version to ${yellow}${destination}${reset}...`);
-					Readable.fromWeb(res.body).pipe(fs.createWriteStream(destination));
+					await pipeline(Readable.fromWeb(res.body), fs.createWriteStream(destination));
 					manifest.repositories[repository].latestVersion = version;
 					fs.writeFileSync(manifestFilePath, JSON.stringify(manifest, null, "\t"));
 				}).catch(err => console.error(err));
