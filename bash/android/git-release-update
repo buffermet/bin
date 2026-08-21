@@ -48,7 +48,6 @@ const reset = "\x1b[0m";
 					if (!assets || assets.length === 0)
 						return reject("no assets found in API response.");
 					try {
-
 						const rxTargetFilename = new RegExp(filenameSelector);
 						for (const asset of assets) {
 							const downloadUrl = asset.browser_download_url;
