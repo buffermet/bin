@@ -83,7 +83,7 @@ const reset = "\x1b[0m";
 				const cleanVersion = version.replaceAll(rxShellCommandSanitizer, "");
 				downloadUrl = downloadUrl.replaceAll(rxShellCommandSanitizer, "");
 				console.log(` ${boldgreen}↓${reset} (${repository}) Requesting download...`);
-				execSync(`termux-notification --action "xdg-open '${downloadUrl}'" --group git-release-update -t 'Git Release Update' -c '${cleanRepo} released ${cleanVersion}'`);
+				execSync(`termux-notification --action "xdg-open '${downloadUrl}'" -t 'Git Release Update' -c '${cleanRepo} released ${cleanVersion}'`);
 				manifest.repositories[repository].latestVersion = version;
 				fs.writeFileSync(manifestFilePath, JSON.stringify(manifest, null, "\t"));
 			}
