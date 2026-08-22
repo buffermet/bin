@@ -1,0 +1,73 @@
+#!/usr/bin/node
+
+// Example manifest
+/*
+{
+	"packages": {
+		"old-school-runescape/com.jagex.oldscape.android": ""
+	}
+}
+*/
+
+import fs from "node:fs";
+import { execSync } from "node:child_process";
+
+const boldgreen = "\x1b[1;32m";
+const green = "\x1b[32m";
+const yellow = "\x1b[33m";
+const reset = "\x1b[0m";
+
+const manifestPath = process.argv[2];
+if (!manifestPath) {
+	console.error("no manifest file given.");
+	console.log("usage: apkpure-update <MANIFEST>");
+	process.exit(1);
+}
+
+const manifest = JSON.parse(fs.readFileSync(manifestPath));
+
+(async () => {
+	const rxApkIdSelector = / data-dt-apkid="b\/([^\/]+)/g;
+	const rxSanitizeShellCommand = /[$;'"`\\]/g;
+	const rxStripPackageName = /^[^\/]+[\/]/g;
+	const rxVersionSelector = / data-dt-version="([^"]+)"/g;
+
+	const sleep = async ms => new Promise(resolve => setTimeout(resolve, ms));
+
+	const packages = manifest.packages;
+	if (!packages) {
+		console.error("invalid manifest provided: missing packages property.");
+		process.exit(1);
+	}
+	for (const pkg of Object.keys(packages)) {
+		const lastDownloadedVersion = packages[pkg];
+		console.log(`   (${pkg}) Last downloaded version: ${green}${lastDownloadedVersion}${reset}`);
+		fetch(`https://apkpure.com/${pkg}`).then(res => {
+			res.text().then(plaintext => {
+				rxApkIdSelector.lastIndex = 0;
+				rxVersionSelector.lastIndex = 0;
+				if (rxApkIdSelector.test(plaintext) && rxVersionSelector.test(plaintext)) {
+					const apkIdMatch = plaintext.match(rxApkIdSelector)[0];
+					const apkId = apkIdMatch.replace(rxApkIdSelector, "$1");
+					const versionMatch = plaintext.match(rxVersionSelector)[0];
+					const version = versionMatch.replace(rxVersionSelector, "$1");
+					if (version !== lastDownloadedVersion) {
+						console.log(`   (${pkg}) Latest version: ${green}${version}${reset}`);
+						const packageName = pkg.replace(rxStripPackageName, "");
+						const downloadUrl = `https://d.apkpure.com/b/${apkId}/${packageName}?version=latest`;
+						const cleanDownloadUrl = downloadUrl.replace(rxSanitizeShellCommand, "");
+						const cleanPackage = pkg.replace(rxSanitizeShellCommand, "");
+						const cleanVersion = version.replace(rxSanitizeShellCommand, "");
+						console.log(` ${boldgreen}↓${reset} (${pkg}) Requesting download...`);
+						execSync(`termux-notification --action "xdg-open '${cleanDownloadUrl}'" -t 'APKPure Update' -c '${cleanPackage} released ${cleanVersion}'`);
+						manifest.packages[pkg] = version;
+						fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, "\t"));
+					}
+				} else {
+					console.error("could not find APK id or version in response body.");
+				}
+			}).catch(err => console.error(err));
+		}).catch(err => console.error(err));
+		await sleep(2000);
+	}
+})().catch(err => console.error(err));
